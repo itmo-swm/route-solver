@@ -16,85 +16,68 @@ import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeImpl;
 import com.graphhopper.jsprit.core.reporting.SolutionPrinter;
 import com.graphhopper.jsprit.core.util.Solutions;
 import com.graphhopper.jsprit.io.problem.VrpXMLWriter;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.giggsoff.jspritproj.models.SGB;
+import org.giggsoff.jspritproj.models.Truck;
+import org.giggsoff.jspritproj.utils.Solver;
+import org.json.JSONException;
 
-
-public class SimpleExample {
-
-
+public class Main {
+    
+    public static List<Truck> trList = new ArrayList<>();
+    public static List<SGB> sgbList = new ArrayList<>();
+    
     public static void main(String[] args) {
+        try {
+            HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
+            server.createContext("/test", new MyHandler());
+            server.start();
+            Truck tr1 = new Truck(Reader.readObject("get_truck?path=1"));
+            trList.add(tr1);
+            List<SGB> list = SGB.fromArray(Reader.readArray("get_sgb?path=1"));
+            sgbList.addAll(list);
+        } catch (IOException | JSONException | ParseException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        }
         /*
          * some preparation - create output folder
-		 */
+         */
         File dir = new File("output");
         // if the directory does not exist, create it
         if (!dir.exists()) {
             System.out.println("creating directory ./output");
             boolean result = dir.mkdir();
-            if (result) System.out.println("./output created");
+            if (result) {
+                System.out.println("./output created");
+            }
         }
+        
+        Solver.solve(trList, sgbList);
+    }
 
-		/*
-         * get a vehicle type-builder and build a type with the typeId "vehicleType" and one capacity dimension, i.e. weight, and capacity dimension value of 2
-		 */
-        final int WEIGHT_INDEX = 0;
-        VehicleTypeImpl.Builder vehicleTypeBuilder = VehicleTypeImpl.Builder.newInstance("vehicleType").addCapacityDimension(WEIGHT_INDEX, 2);
-        VehicleType vehicleType = vehicleTypeBuilder.build();
+    static class MyHandler implements HttpHandler {
 
-		/*
-         * get a vehicle-builder and build a vehicle located at (10,10) with type "vehicleType"
-		 */
-        Builder vehicleBuilder = VehicleImpl.Builder.newInstance("vehicle");
-        vehicleBuilder.setStartLocation(Location.newInstance(10, 10));
-        vehicleBuilder.setType(vehicleType);
-        VehicleImpl vehicle = vehicleBuilder.build();
-
-		/*
-         * build services at the required locations, each with a capacity-demand of 1.
-		 */
-        Service service1 = Service.Builder.newInstance("1").addSizeDimension(WEIGHT_INDEX, 1).setLocation(Location.newInstance(5, 7)).build();
-        Service service2 = Service.Builder.newInstance("2").addSizeDimension(WEIGHT_INDEX, 1).setLocation(Location.newInstance(5, 13)).build();
-
-        Service service3 = Service.Builder.newInstance("3").addSizeDimension(WEIGHT_INDEX, 1).setLocation(Location.newInstance(15, 7)).build();
-        Service service4 = Service.Builder.newInstance("4").addSizeDimension(WEIGHT_INDEX, 1).setLocation(Location.newInstance(15, 13)).build();
-
-
-        VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
-        vrpBuilder.addVehicle(vehicle);
-        vrpBuilder.addJob(service1).addJob(service2).addJob(service3).addJob(service4);
-
-        VehicleRoutingProblem problem = vrpBuilder.build();
-
-		/*
-         * get the algorithm out-of-the-box.
-		 */
-        VehicleRoutingAlgorithm algorithm = Jsprit.createAlgorithm(problem);
-
-		/*
-         * and search a solution
-		 */
-        Collection<VehicleRoutingProblemSolution> solutions = algorithm.searchSolutions();
-
-		/*
-         * get the best
-		 */
-        VehicleRoutingProblemSolution bestSolution = Solutions.bestOf(solutions);
-
-        new VrpXMLWriter(problem, solutions).write("output/problem-with-solution.xml");
-
-        SolutionPrinter.print(problem, bestSolution, SolutionPrinter.Print.VERBOSE);
-
-		/*
-         * plot
-		 */
-        new Plotter(problem,bestSolution).plot("output/plot.png","simple example");
-
-        /*
-        render problem and solution with GraphStream
-         */
-        new GraphStreamViewer(problem, bestSolution).labelWith(Label.ID).setRenderDelay(200).display();
+        @Override
+        public void handle(HttpExchange he) throws IOException {
+            String response = "This is the response";
+            he.sendResponseHeaders(200, response.length());
+            OutputStream os = he.getResponseBody();
+            os.write(response.getBytes());
+            os.close();
+        }
     }
 
 }
