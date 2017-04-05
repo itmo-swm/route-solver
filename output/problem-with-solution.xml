@@ -90,23 +90,23 @@
      </services>
      <solutions>
           <solution>
-               <cost>0.07703894817397104</cost>
+               <cost>20.0</cost>
                <routes>
                     <route>
                          <driverId>noDriver</driverId>
                          <vehicleId>vehicle</vehicleId>
                          <start>0.0</start>
                          <act type="service">
-                              <serviceId>1</serviceId>
-                              <arrTime>0.017709865821823566</arrTime>
-                              <endTime>0.017709865821823566</endTime>
+                              <serviceId>3</serviceId>
+                              <arrTime>0.02810415464641344</arrTime>
+                              <endTime>0.02810415464641344</endTime>
                          </act>
                          <act type="service">
-                              <serviceId>3</serviceId>
-                              <arrTime>0.028254361854738272</arrTime>
-                              <endTime>0.028254361854738272</endTime>
+                              <serviceId>1</serviceId>
+                              <arrTime>0.03864865067932814</arrTime>
+                              <endTime>0.03864865067932814</endTime>
                          </act>
-                         <end>0.056358516501151715</end>
+                         <end>0.05635851650115171</end>
                     </route>
                     <route>
                          <driverId>noDriver</driverId>
@@ -122,8 +122,24 @@
                </routes>
           </solution>
           <solution>
-               <cost>0.07703894817397104</cost>
+               <cost>20.0</cost>
                <routes>
+                    <route>
+                         <driverId>noDriver</driverId>
+                         <vehicleId>vehicle</vehicleId>
+                         <start>0.0</start>
+                         <act type="service">
+                              <serviceId>3</serviceId>
+                              <arrTime>0.02810415464641344</arrTime>
+                              <endTime>0.02810415464641344</endTime>
+                         </act>
+                         <act type="service">
+                              <serviceId>2</serviceId>
+                              <arrTime>0.06636765938890944</arrTime>
+                              <endTime>0.06636765938890944</endTime>
+                         </act>
+                         <end>0.0767078752253191</end>
+                    </route>
                     <route>
                          <driverId>noDriver</driverId>
                          <vehicleId>vehicle</vehicleId>
@@ -133,23 +149,7 @@
                               <arrTime>0.017709865821823566</arrTime>
                               <endTime>0.017709865821823566</endTime>
                          </act>
-                         <act type="service">
-                              <serviceId>3</serviceId>
-                              <arrTime>0.028254361854738272</arrTime>
-                              <endTime>0.028254361854738272</endTime>
-                         </act>
-                         <end>0.056358516501151715</end>
-                    </route>
-                    <route>
-                         <driverId>noDriver</driverId>
-                         <vehicleId>vehicle</vehicleId>
-                         <start>0.0</start>
-                         <act type="service">
-                              <serviceId>2</serviceId>
-                              <arrTime>0.010340215836409667</arrTime>
-                              <endTime>0.010340215836409667</endTime>
-                         </act>
-                         <end>0.020680431672819334</end>
+                         <end>0.03541973164364713</end>
                     </route>
                </routes>
           </solution>

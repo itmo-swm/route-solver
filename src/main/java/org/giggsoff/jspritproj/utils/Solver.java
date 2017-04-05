@@ -24,6 +24,7 @@ import com.graphhopper.jsprit.core.util.Solutions;
 import com.graphhopper.jsprit.io.problem.VrpXMLWriter;
 import java.util.Collection;
 import java.util.List;
+import org.giggsoff.jspritproj.alg.VehicleRoutingAlgorithmBuilder;
 import org.giggsoff.jspritproj.models.SGB;
 import org.giggsoff.jspritproj.models.Truck;
 
@@ -32,8 +33,8 @@ import org.giggsoff.jspritproj.models.Truck;
  * @author giggsoff
  */
 public class Solver {
-    
-    public static void solve(List<Truck> trList, List<SGB> sgbList){
+
+    public static void solve(List<Truck> trList, List<SGB> sgbList) {
         /*
          * get a vehicle type-builder and build a type with the typeId "vehicleType" and one capacity dimension, i.e. weight, and capacity dimension value of 2
          */
@@ -45,7 +46,7 @@ public class Solver {
         /*
          * get a vehicle-builder and build a vehicle located at (10,10) with type "vehicleType"
          */
-        for(Truck tr:trList){
+        for (Truck tr : trList) {
             VehicleImpl.Builder vehicleBuilder = VehicleImpl.Builder.newInstance("vehicle");
             vehicleBuilder.setStartLocation(Location.newInstance(tr.lat, tr.lng));
             vehicleBuilder.setType(vehicleType);
@@ -57,25 +58,22 @@ public class Solver {
          * build services at the required locations, each with a capacity-demand of 1.
          */
         int i = 0;
-        for(SGB sgb:sgbList){
+        for (SGB sgb : sgbList) {
             Service service = Service.Builder.newInstance(Integer.toString(++i)).addSizeDimension(WEIGHT_INDEX, 1).setLocation(Location.newInstance(sgb.lat, sgb.lng)).build();
-            vrpBuilder.addJob(service);            
+            vrpBuilder.addJob(service);
         }
-        
-        
 
         SolutionCostCalculator costCalculator = new SolutionCostCalculator() {
-
             @Override
             public double getCosts(VehicleRoutingProblemSolution solution) {
                 double costs = 0.;
                 List<VehicleRoute> routes = (List<VehicleRoute>) solution.getRoutes();
-                for(VehicleRoute route : routes){
-                    costs+=route.getVehicle().getType().getVehicleCostParams().fix;
-                    costs+=stateManager.getRouteState(route, InternalStates.COSTS, Double.class);
+                for (VehicleRoute route : routes) {
+                    costs += 10;//route.getVehicle().getType().getVehicleCostParams().fix;
+                    /*costs+=stateManager.getRouteState(route, InternalStates.COSTS, Double.class);
                     for (RewardAndPenaltiesThroughSoftConstraints contrib : contribs) {
                         costs+=contrib.getCosts(route);
-                    }
+                    }*/
                 }
                 return costs;
             }
@@ -84,13 +82,14 @@ public class Solver {
 
         VehicleRoutingProblem problem = vrpBuilder.build();
 
-        
-        
         /*
          * get the algorithm out-of-the-box.
          */
-        VehicleRoutingAlgorithm algorithm = Jsprit.createAlgorithm(problem);
-        
+        VehicleRoutingAlgorithmBuilder vraBuilder = new VehicleRoutingAlgorithmBuilder(problem, "algorithmConfig.xml");
+        vraBuilder.addDefaultCostCalculators();
+        vraBuilder.setObjectiveFunction(costCalculator);
+        VehicleRoutingAlgorithm algorithm = vraBuilder.build();
+
         /*
          * and search a solution
          */
