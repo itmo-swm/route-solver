@@ -27,7 +27,9 @@ import com.graphhopper.jsprit.core.util.Solutions;
 import com.graphhopper.jsprit.io.problem.VrpXMLWriter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.giggsoff.jspritproj.alg.VehicleRoutingAlgorithmBuilder;
 import org.giggsoff.jspritproj.models.SGB;
 import org.giggsoff.jspritproj.models.Truck;
@@ -39,8 +41,8 @@ import org.giggsoff.jspritproj.models.Truck;
 public class Solver {
 
     public static void solve(List<Truck> trList, List<SGB> sgbList, GraphhopperWorker gw) {
-        
-        System.out.println("INITIAL COUNT: "+gw.ghCount);
+
+        System.out.println("INITIAL COUNT: " + gw.ghCount);
         /*
          * get a vehicle type-builder and build a type with the typeId "vehicleType" and one capacity dimension, i.e. weight, and capacity dimension value of 2
          */
@@ -69,34 +71,48 @@ public class Solver {
             vrpBuilder.addJob(service);
         }
 
-        
-        SolutionCostCalculator costCalculator = new SolutionCostCalculator() {
-            @Override
-            public double getCosts(VehicleRoutingProblemSolution solution) {
-                double costs = 0.;
-                List<VehicleRoute> routes = (List<VehicleRoute>) solution.getRoutes();                
-                for (VehicleRoute route : routes) {
-                    List<Coordinate> lc = new ArrayList<>();
-                    lc.add(route.getStart().getLocation().getCoordinate());
-                    for(TourActivity ta : route.getActivities()){
-                        lc.add(ta.getLocation().getCoordinate());
-                    }
-                    lc.add(route.getEnd().getLocation().getCoordinate());
-                    for(int i=0;i<lc.size()-1;i++){
-                        GHResponse resp = gw.getRoute(lc.get(i).getY(), lc.get(i).getX(), lc.get(i+1).getY(), lc.get(i+1).getX());
-                        if(resp!=null)
-                            costs += resp.getBest().getDistance();
-                    }
-                    
-                    //costs += route.getVehicle().getType().getVehicleCostParams().fix;
-                    /*costs+=stateManager.getRouteState(route, InternalStates.COSTS, Double.class);
-                    for (RewardAndPenaltiesThroughSoftConstraints contrib : contribs) {
-                        costs+=contrib.getCosts(route);
-                    }*/
-                }
-                return costs;
-            }
+        Map<String, Map<String, Double>> hashMap = new HashMap<>();
 
+        SolutionCostCalculator costCalculator = (VehicleRoutingProblemSolution solution) -> {
+            double costs = 0.;
+            List<VehicleRoute> routes = (List<VehicleRoute>) solution.getRoutes();
+            for (VehicleRoute route : routes) {
+                List<Location> lc = new ArrayList<>();
+                lc.add(route.getStart().getLocation());
+                for (TourActivity ta : route.getActivities()) {
+                    lc.add(ta.getLocation());
+                }
+                lc.add(route.getEnd().getLocation());
+                for (int i1 = 0; i1 < lc.size() - 1; i1++) {
+                    if (hashMap.containsKey(lc.get(i1).getId())) {
+                        if (hashMap.get(lc.get(i1).getId()).containsKey(lc.get(i1 + 1).getId())) {
+                            costs += hashMap.get(lc.get(i1).getId()).get(lc.get(i1 + 1).getId());
+                        } else {
+                            GHResponse resp = gw.getRoute(lc.get(i1).getCoordinate().getY(), lc.get(i1).getCoordinate().getX(), lc.get(i1 + 1).getCoordinate().getY(), lc.get(i1 + 1).getCoordinate().getX());
+                            if (resp != null) {
+                                Double res = resp.getBest().getDistance();
+                                ;
+                                costs += res;
+                                hashMap.get(lc.get(i1).getId()).put(lc.get(i1 + 1).getId(), res);
+                            }
+                        }
+                    } else {
+                        GHResponse resp = gw.getRoute(lc.get(i1).getCoordinate().getY(), lc.get(i1).getCoordinate().getX(), lc.get(i1 + 1).getCoordinate().getY(), lc.get(i1 + 1).getCoordinate().getX());
+                        if (resp != null) {
+                            Double res = resp.getBest().getDistance();
+                            costs += res;
+                            hashMap.put(lc.get(i1).getId(), new HashMap<>());
+                            hashMap.get(lc.get(i1).getId()).put(lc.get(i1 + 1).getId(), res);
+                        }
+                    }
+                }
+                //costs += route.getVehicle().getType().getVehicleCostParams().fix;
+                /*costs+=stateManager.getRouteState(route, InternalStates.COSTS, Double.class);
+                for (RewardAndPenaltiesThroughSoftConstraints contrib : contribs) {
+                costs+=contrib.getCosts(route);
+                }*/
+            }
+            return costs;
         };
 
         VehicleRoutingProblem problem = vrpBuilder.build();
@@ -132,7 +148,7 @@ public class Solver {
         render problem and solution with GraphStream
          */
         new GraphStreamViewer(problem, bestSolution).labelWith(GraphStreamViewer.Label.ID).setRenderDelay(200).display();
-        
-        System.out.println("LAST COUNT: "+gw.ghCount);
+
+        System.out.println("LAST COUNT: " + gw.ghCount);
     }
 }
