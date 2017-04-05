@@ -1,5 +1,6 @@
 package org.giggsoff.jspritproj;
 
+import org.giggsoff.jspritproj.utils.Reader;
 import com.graphhopper.jsprit.analysis.toolbox.GraphStreamViewer;
 import com.graphhopper.jsprit.analysis.toolbox.GraphStreamViewer.Label;
 import com.graphhopper.jsprit.analysis.toolbox.Plotter;
@@ -26,12 +27,12 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.giggsoff.jspritproj.models.SGB;
 import org.giggsoff.jspritproj.models.Truck;
+import org.giggsoff.jspritproj.utils.GraphhopperWorker;
 import org.giggsoff.jspritproj.utils.Solver;
 import org.json.JSONException;
 
@@ -39,7 +40,7 @@ public class Main {
     
     public static List<Truck> trList = new ArrayList<>();
     public static List<SGB> sgbList = new ArrayList<>();
-    
+    public static GraphhopperWorker gw = null;
     public static void main(String[] args) {
         try {
             HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
@@ -64,8 +65,12 @@ public class Main {
                 System.out.println("./output created");
             }
         }
-        
-        Solver.solve(trList, sgbList);
+        try {
+            GraphhopperWorker gw = new GraphhopperWorker("map.pbf", "output");
+            Solver.solve(trList, sgbList, gw);
+        } catch (IOException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     static class MyHandler implements HttpHandler {
