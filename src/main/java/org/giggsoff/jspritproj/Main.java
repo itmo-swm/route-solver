@@ -1,22 +1,9 @@
 package org.giggsoff.jspritproj;
 
 import org.giggsoff.jspritproj.utils.Reader;
-import com.graphhopper.jsprit.analysis.toolbox.GraphStreamViewer;
-import com.graphhopper.jsprit.analysis.toolbox.GraphStreamViewer.Label;
-import com.graphhopper.jsprit.analysis.toolbox.Plotter;
-import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithm;
-import com.graphhopper.jsprit.core.algorithm.box.Jsprit;
-import com.graphhopper.jsprit.core.problem.Location;
-import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
-import com.graphhopper.jsprit.core.problem.job.Service;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
-import com.graphhopper.jsprit.core.problem.vehicle.VehicleImpl;
-import com.graphhopper.jsprit.core.problem.vehicle.VehicleImpl.Builder;
-import com.graphhopper.jsprit.core.problem.vehicle.VehicleType;
-import com.graphhopper.jsprit.core.problem.vehicle.VehicleTypeImpl;
-import com.graphhopper.jsprit.core.reporting.SolutionPrinter;
-import com.graphhopper.jsprit.core.util.Solutions;
-import com.graphhopper.jsprit.io.problem.VrpXMLWriter;
+import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
+import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -30,27 +17,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.giggsoff.jspritproj.models.Dump;
 import org.giggsoff.jspritproj.models.SGB;
 import org.giggsoff.jspritproj.models.Truck;
 import org.giggsoff.jspritproj.utils.GraphhopperWorker;
 import org.giggsoff.jspritproj.utils.Solver;
+import org.json.JSONArray;
 import org.json.JSONException;
 
 public class Main {
     
     public static List<Truck> trList = new ArrayList<>();
     public static List<SGB> sgbList = new ArrayList<>();
+    public static List<Dump> dumpList = new ArrayList<>();
     public static GraphhopperWorker gw = null;
     public static void main(String[] args) {
         try {
             HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
             server.createContext("/test", new MyHandler());
             server.start();
-            Truck tr1 = new Truck(Reader.readObject("get_truck?path=1"));
-            trList.add(tr1);
-            List<SGB> list = SGB.fromArray(Reader.readArray("get_sgb?path=1"));
-            sgbList.addAll(list);
-        } catch (IOException | JSONException | ParseException ex) {
+        } catch (IOException | JSONException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
         /*
@@ -67,7 +53,6 @@ public class Main {
         }
         try {
             GraphhopperWorker gw = new GraphhopperWorker("map.pbf", "output");
-            Solver.solve(trList, sgbList, gw);
         } catch (IOException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -77,11 +62,35 @@ public class Main {
 
         @Override
         public void handle(HttpExchange he) throws IOException {
-            String response = "This is the response";
-            he.sendResponseHeaders(200, response.length());
-            OutputStream os = he.getResponseBody();
-            os.write(response.getBytes());
-            os.close();
+            try {
+                Truck tr1 = new Truck(Reader.readObject("get_truck?path=1"));
+                trList = new ArrayList<>();
+                trList.add(tr1);
+                List<SGB> list = SGB.fromArray(Reader.readArray("get_sgb?path=1"));
+                sgbList = new ArrayList<>();
+                sgbList.addAll(list);
+                List<Dump> dlist = Dump.fromArray(Reader.readArray("get_waste_dumps?path=1"));
+                dumpList = new ArrayList<>();
+                dumpList.addAll(dlist);
+                VehicleRoutingProblemSolution solve = Solver.solve(trList, sgbList, dumpList, gw, true);
+                JSONArray ar = new JSONArray();
+                for(VehicleRoute vr:solve.getRoutes()){
+                    JSONArray vehroute = new JSONArray();
+                    for(TourActivity ta:vr.getActivities()){
+                        vehroute.put(new JSONArray().put(ta.getLocation().getCoordinate().getX()).put(ta.getLocation().getCoordinate().getY()));
+                    }
+                    ar.put(vehroute);
+                }
+                String response = ar.toString();
+                he.sendResponseHeaders(200, response.length());
+                OutputStream os = he.getResponseBody();
+                os.write(response.getBytes());
+                os.close();
+            } catch (JSONException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ParseException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }
 
