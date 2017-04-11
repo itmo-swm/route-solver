@@ -29,8 +29,8 @@ public class SGB {
         lat = obj.getJSONObject("geometry").getJSONArray("coordinates").getDouble(0);
         lng = obj.getJSONObject("geometry").getJSONArray("coordinates").getDouble(1);
         state = Integer.parseInt(obj.getString("state"));
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        cleaning_time = dateFormat.parse(obj.getString("cleaning_time"));
+        //SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        //cleaning_time = dateFormat.parse(obj.getString("cleaning_time"));
     }
     
     public static List<SGB> fromArray(JSONArray ar) throws JSONException, ParseException{

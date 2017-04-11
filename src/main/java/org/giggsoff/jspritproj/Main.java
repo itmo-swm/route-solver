@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.giggsoff.jspritproj.models.Dump;
+import org.giggsoff.jspritproj.models.Region;
 import org.giggsoff.jspritproj.models.SGB;
 import org.giggsoff.jspritproj.models.Truck;
 import org.giggsoff.jspritproj.utils.GraphhopperWorker;
@@ -30,6 +31,7 @@ public class Main {
     public static List<Truck> trList = new ArrayList<>();
     public static List<SGB> sgbList = new ArrayList<>();
     public static List<Dump> dumpList = new ArrayList<>();
+    public static List<Region> regionList = new ArrayList<>();
     public static GraphhopperWorker gw = null;
     public static void main(String[] args) {
         try {
@@ -52,7 +54,8 @@ public class Main {
             }
         }
         try {
-            GraphhopperWorker gw = new GraphhopperWorker("map.pbf", "output");
+            gw = new GraphhopperWorker("map.pbf", "output");
+            System.out.println("Ready");
         } catch (IOException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -63,16 +66,19 @@ public class Main {
         @Override
         public void handle(HttpExchange he) throws IOException {
             try {
-                Truck tr1 = new Truck(Reader.readObject("get_truck?path=1"));
+                List<Region> rlist = Region.fromArray(Reader.readArray("get_regions"));
+                regionList = new ArrayList<>();
+                regionList.addAll(rlist);
+                List<Truck> tlist = Truck.fromArray(Reader.readArray("get_truck?region="+regionList.get(0).id));
                 trList = new ArrayList<>();
-                trList.add(tr1);
-                List<SGB> list = SGB.fromArray(Reader.readArray("get_sgb?path=1"));
+                trList.addAll(tlist);
+                List<SGB> list = SGB.fromArray(Reader.readArray("get_sgb?region="+regionList.get(0).id));
                 sgbList = new ArrayList<>();
                 sgbList.addAll(list);
-                List<Dump> dlist = Dump.fromArray(Reader.readArray("get_waste_dumps?path=1"));
+                List<Dump> dlist = Dump.fromArray(Reader.readArray("get_waste_dumps?region="+regionList.get(0).id));
                 dumpList = new ArrayList<>();
                 dumpList.addAll(dlist);
-                VehicleRoutingProblemSolution solve = Solver.solve(trList, sgbList, dumpList, gw, true);
+                VehicleRoutingProblemSolution solve = Solver.solve(trList, sgbList, dumpList, gw, false);
                 JSONArray ar = new JSONArray();
                 for(VehicleRoute vr:solve.getRoutes()){
                     JSONArray vehroute = new JSONArray();

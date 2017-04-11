@@ -5,6 +5,10 @@
  */
 package org.giggsoff.jspritproj.models;
 
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -22,5 +26,13 @@ public class Truck {
         lat = obj.getJSONObject("geometry").getJSONArray("coordinates").getDouble(0);
         lng = obj.getJSONObject("geometry").getJSONArray("coordinates").getDouble(1);
         priority = Integer.parseInt(obj.getString("priority"));
+    }
+    
+    public static List<Truck> fromArray(JSONArray ar) throws JSONException, ParseException{
+        List<Truck> temp = new ArrayList<>();
+        for(int i=0;i<ar.length();i++){
+            temp.add(new Truck(ar.getJSONObject(i)));
+        }
+        return temp;
     }
 }

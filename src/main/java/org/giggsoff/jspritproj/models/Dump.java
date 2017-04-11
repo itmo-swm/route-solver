@@ -26,7 +26,7 @@ public class Dump {
         id = obj.getString("id");
         lat = obj.getJSONObject("geometry").getJSONArray("coordinates").getDouble(0);
         lng = obj.getJSONObject("geometry").getJSONArray("coordinates").getDouble(1);
-        state = Integer.parseInt(obj.getString("state"));
+        //state = Integer.parseInt(obj.getString("state"));
     }
     
     public static List<Dump> fromArray(JSONArray ar) throws JSONException, ParseException{

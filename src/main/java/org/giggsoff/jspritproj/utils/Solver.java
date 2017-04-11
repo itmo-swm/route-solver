@@ -55,7 +55,7 @@ public class Solver {
          * get a vehicle-builder and build a vehicle located at (10,10) with type "vehicleType"
          */
         for (Truck tr : trList) {
-            VehicleImpl.Builder vehicleBuilder = VehicleImpl.Builder.newInstance("vehicle");
+            VehicleImpl.Builder vehicleBuilder = VehicleImpl.Builder.newInstance(tr.id);
             vehicleBuilder.setStartLocation(Location.newInstance(tr.lat, tr.lng));
             vehicleBuilder.setType(vehicleType);
             vehicleBuilder.setReturnToDepot(false);
