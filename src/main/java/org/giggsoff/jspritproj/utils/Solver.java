@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import org.giggsoff.jspritproj.alg.VehicleRoutingAlgorithmBuilder;
 import org.giggsoff.jspritproj.models.Dump;
+import org.giggsoff.jspritproj.models.Point;
 import org.giggsoff.jspritproj.models.SGB;
 import org.giggsoff.jspritproj.models.Truck;
 
@@ -38,6 +39,29 @@ import org.giggsoff.jspritproj.models.Truck;
  * @author giggsoff
  */
 public class Solver {
+
+    public static Map<String, Map<String, GHResponse>> hashMap = new HashMap<>();
+    
+    public static GHResponse getRoute(Point p1, Point p2, GraphhopperWorker gw){
+        if (hashMap.containsKey(p1.toString())) {
+                        if (hashMap.get(p1.toString()).containsKey(p2.toString())) {
+                            return hashMap.get(p1.toString()).get(p2.toString());
+                        } else {
+                            GHResponse resp = gw.getRoute(p1.y, p1.x, p2.y, p2.x);
+                            if (resp != null) {
+                                hashMap.get(p1.toString()).put(p2.toString(), resp);
+                                return resp;
+                            }
+                        }
+                    } else {
+                        GHResponse resp = gw.getRoute(p1.y, p1.x, p2.y, p2.x);
+                        if (resp != null) {
+                            hashMap.put(p1.toString(), new HashMap<>());
+                            hashMap.get(p1.toString()).put(p2.toString(), resp);
+                        }
+                    }
+        return null;
+    }
 
     public static VehicleRoutingProblemSolution solve(List<Truck> trList, List<SGB> sgbList, List<Dump> dumpList, GraphhopperWorker gw, boolean showPlot) {
 
@@ -56,7 +80,7 @@ public class Solver {
          */
         for (Truck tr : trList) {
             VehicleImpl.Builder vehicleBuilder = VehicleImpl.Builder.newInstance(tr.id);
-            vehicleBuilder.setStartLocation(Location.newInstance(tr.lat, tr.lng));
+            vehicleBuilder.setStartLocation(Location.newInstance(tr.coord.x, tr.coord.y));
             vehicleBuilder.setType(vehicleType);
             vehicleBuilder.setReturnToDepot(false);
             VehicleImpl vehicle = vehicleBuilder.build();
@@ -68,16 +92,14 @@ public class Solver {
          */
         int i = 0;
         for (SGB sgb : sgbList) {
-            Pickup service = Pickup.Builder.newInstance(Integer.toString(++i)).setServiceTime(100).addSizeDimension(WEIGHT_INDEX, 20).setLocation(Location.newInstance(sgb.lat, sgb.lng)).build();
+            Pickup service = Pickup.Builder.newInstance(Integer.toString(++i)).setServiceTime(100).addSizeDimension(WEIGHT_INDEX, 20).setLocation(Location.newInstance(sgb.coord.x, sgb.coord.y)).build();
             vrpBuilder.addJob(service);
         }
         
         for (Dump dump : dumpList) {
-            Delivery service = Delivery.Builder.newInstance(Integer.toString(++i)).setServiceTime(100).addSizeDimension(WEIGHT_INDEX, 10000).setLocation(Location.newInstance(dump.lat, dump.lng)).build();
+            Delivery service = Delivery.Builder.newInstance(Integer.toString(++i)).setServiceTime(100).addSizeDimension(WEIGHT_INDEX, 10000).setLocation(Location.newInstance(dump.coord.x, dump.coord.y)).build();
             vrpBuilder.addJob(service);
         }
-
-        Map<String, Map<String, Double>> hashMap = new HashMap<>();
 
         SolutionCostCalculator costCalculator = (VehicleRoutingProblemSolution solution) -> {
             double costs = 0.;
@@ -90,26 +112,9 @@ public class Solver {
                 }
                 lc.add(route.getEnd().getLocation());
                 for (int i1 = 0; i1 < lc.size() - 1; i1++) {
-                    if (hashMap.containsKey(lc.get(i1).getId())) {
-                        if (hashMap.get(lc.get(i1).getId()).containsKey(lc.get(i1 + 1).getId())) {
-                            costs += hashMap.get(lc.get(i1).getId()).get(lc.get(i1 + 1).getId());
-                        } else {
-                            GHResponse resp = gw.getRoute(lc.get(i1).getCoordinate().getY(), lc.get(i1).getCoordinate().getX(), lc.get(i1 + 1).getCoordinate().getY(), lc.get(i1 + 1).getCoordinate().getX());
-                            if (resp != null) {
-                                Double res = resp.getBest().getDistance();
-                                ;
-                                costs += res;
-                                hashMap.get(lc.get(i1).getId()).put(lc.get(i1 + 1).getId(), res);
-                            }
-                        }
-                    } else {
-                        GHResponse resp = gw.getRoute(lc.get(i1).getCoordinate().getY(), lc.get(i1).getCoordinate().getX(), lc.get(i1 + 1).getCoordinate().getY(), lc.get(i1 + 1).getCoordinate().getX());
-                        if (resp != null) {
-                            Double res = resp.getBest().getDistance();
-                            costs += res;
-                            hashMap.put(lc.get(i1).getId(), new HashMap<>());
-                            hashMap.get(lc.get(i1).getId()).put(lc.get(i1 + 1).getId(), res);
-                        }
+                    GHResponse grp = getRoute(new Point(lc.get(i1).getCoordinate()), new Point(lc.get(i1+1).getCoordinate()), gw);
+                    if(grp!=null){
+                        costs += grp.getBest().getDistance();
                     }
                 }
                 //costs += route.getVehicle().getType().getVehicleCostParams().fix;

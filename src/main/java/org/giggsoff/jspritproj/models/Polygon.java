@@ -22,4 +22,8 @@ public class Polygon {
     public void addPoint(Point pt){
         polygon.add(pt);
     }
+
+    public void addPoint(double x, double y) {
+        addPoint(new Point(x, y));
+    }
 }

@@ -5,6 +5,8 @@
  */
 package org.giggsoff.jspritproj.models;
 
+import com.graphhopper.jsprit.core.util.Coordinate;
+
 /**
  *
  * @author giggsoff
@@ -17,4 +19,14 @@ public class Point {
         x = _x;
         y = _y;
     }
+    
+    public Point(Coordinate coord){
+        x = coord.getX();
+        y = coord.getY();
+    }
+    
+    @Override
+    public String toString() { 
+        return x+";"+y;
+    } 
 }

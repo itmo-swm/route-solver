@@ -5,10 +5,12 @@
  */
 package org.giggsoff.jspritproj.models;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import org.giggsoff.jspritproj.utils.Reader;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,17 +21,15 @@ import org.json.JSONObject;
  */
 public class Dump {
     public String id;
-    public double lat;
-    public double lng;
+    public Point coord;
     public int state;
-    public Dump(JSONObject obj) throws JSONException, ParseException{
+    public Dump(JSONObject obj) throws JSONException, ParseException, IOException{
         id = obj.getString("id");
-        lat = obj.getJSONObject("geometry").getJSONArray("coordinates").getDouble(0);
-        lng = obj.getJSONObject("geometry").getJSONArray("coordinates").getDouble(1);
+        coord = Reader.readGeoJSONPoint(obj.getString("geometry"));
         //state = Integer.parseInt(obj.getString("state"));
     }
     
-    public static List<Dump> fromArray(JSONArray ar) throws JSONException, ParseException{
+    public static List<Dump> fromArray(JSONArray ar) throws JSONException, ParseException, IOException{
         List<Dump> temp = new ArrayList<>();
         for(int i=0;i<ar.length();i++){
             temp.add(new Dump(ar.getJSONObject(i)));

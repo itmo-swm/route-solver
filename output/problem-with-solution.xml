@@ -6,7 +6,7 @@
      </problemType>
      <vehicles>
           <vehicle>
-               <id>track-1</id>
+               <id>http://sdn.naulinux.ru:8128/Plone/track-1</id>
                <typeId>vehicleType</typeId>
                <startLocation>
                     <id>[x=30.287251176302764][y=59.94425080338844]</id>
@@ -23,7 +23,7 @@
                <returnToDepot>false</returnToDepot>
           </vehicle>
           <vehicle>
-               <id>truck-2</id>
+               <id>http://sdn.naulinux.ru:8128/Plone/sity-dashboard-1/truck-2</id>
                <typeId>vehicleType</typeId>
                <startLocation>
                     <id>[x=30.235636925323394][y=59.95529947444449]</id>
@@ -40,7 +40,7 @@
                <returnToDepot>false</returnToDepot>
           </vehicle>
           <vehicle>
-               <id>truck-3</id>
+               <id>http://sdn.naulinux.ru:8128/Plone/sity-dashboard-1/truck-3</id>
                <typeId>vehicleType</typeId>
                <startLocation>
                     <id>[x=30.26535043678692][y=59.96019807111909]</id>
@@ -188,11 +188,11 @@
      </services>
      <solutions>
           <solution>
-               <cost>7544.486238441719</cost>
+               <cost>0.0</cost>
                <routes>
                     <route>
                          <driverId>noDriver</driverId>
-                         <vehicleId>track-1</vehicleId>
+                         <vehicleId>http://sdn.naulinux.ru:8128/Plone/track-1</vehicleId>
                          <start>0.0</start>
                          <act type="pickup">
                               <serviceId>3</serviceId>
@@ -218,7 +218,7 @@
                     </route>
                     <route>
                          <driverId>noDriver</driverId>
-                         <vehicleId>truck-2</vehicleId>
+                         <vehicleId>http://sdn.naulinux.ru:8128/Plone/sity-dashboard-1/truck-2</vehicleId>
                          <start>0.0</start>
                          <act type="pickup">
                               <serviceId>4</serviceId>
@@ -229,7 +229,7 @@
                     </route>
                     <route>
                          <driverId>noDriver</driverId>
-                         <vehicleId>truck-3</vehicleId>
+                         <vehicleId>http://sdn.naulinux.ru:8128/Plone/sity-dashboard-1/truck-3</vehicleId>
                          <start>0.0</start>
                          <act type="pickup">
                               <serviceId>6</serviceId>
@@ -244,11 +244,11 @@
                </unassignedJobs>
           </solution>
           <solution>
-               <cost>7544.486238441719</cost>
+               <cost>0.0</cost>
                <routes>
                     <route>
                          <driverId>noDriver</driverId>
-                         <vehicleId>track-1</vehicleId>
+                         <vehicleId>http://sdn.naulinux.ru:8128/Plone/track-1</vehicleId>
                          <start>0.0</start>
                          <act type="pickup">
                               <serviceId>3</serviceId>
@@ -274,7 +274,7 @@
                     </route>
                     <route>
                          <driverId>noDriver</driverId>
-                         <vehicleId>truck-2</vehicleId>
+                         <vehicleId>http://sdn.naulinux.ru:8128/Plone/sity-dashboard-1/truck-2</vehicleId>
                          <start>0.0</start>
                          <act type="pickup">
                               <serviceId>4</serviceId>
@@ -285,7 +285,7 @@
                     </route>
                     <route>
                          <driverId>noDriver</driverId>
-                         <vehicleId>truck-3</vehicleId>
+                         <vehicleId>http://sdn.naulinux.ru:8128/Plone/sity-dashboard-1/truck-3</vehicleId>
                          <start>0.0</start>
                          <act type="pickup">
                               <serviceId>6</serviceId>

@@ -5,9 +5,11 @@
  */
 package org.giggsoff.jspritproj.models;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import org.giggsoff.jspritproj.utils.Reader;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -18,16 +20,13 @@ import org.json.JSONObject;
  */
 public class Region {
     public String id;
-    public Polygon polygon = new Polygon();
-    public Region(JSONObject obj) throws JSONException, ParseException{
+    public Polygon polygon;
+    public Region(JSONObject obj) throws JSONException, ParseException, IOException{
         id = obj.getString("id");
-        JSONArray ja = obj.getJSONObject("geometry").getJSONArray("coordinates").getJSONArray(0);
-        for(int i = 0;i<ja.length();i++){
-            polygon.addPoint(new Point(ja.getJSONArray(i).getDouble(0),ja.getJSONArray(i).getDouble(1)));
-        }
+        polygon = Reader.readGeoJSONPolygon(obj.getString("geometry"));
     }
     
-    public static List<Region> fromArray(JSONArray ar) throws JSONException, ParseException{
+    public static List<Region> fromArray(JSONArray ar) throws JSONException, ParseException, IOException{
         List<Region> temp = new ArrayList<>();
         for(int i=0;i<ar.length();i++){
             temp.add(new Region(ar.getJSONObject(i)));
