@@ -91,8 +91,8 @@
           </service>
           <service id="2" type="pickup">
                <location>
-                    <id>[x=30.309276973816097][y=59.96437735239504]</id>
-                    <coord x="30.309276973816097" y="59.96437735239504"/>
+                    <id>[x=30.309436296769103][y=59.963915243980495]</id>
+                    <coord x="30.309436296769103" y="59.963915243980495"/>
                </location>
                <capacity-dimensions>
                     <dimension index="0">20</dimension>
@@ -206,15 +206,15 @@
                          </act>
                          <act type="pickup">
                               <serviceId>2</serviceId>
-                              <arrTime>200.03057736616196</arrTime>
-                              <endTime>300.030577366162</endTime>
+                              <arrTime>200.03075320638584</arrTime>
+                              <endTime>300.03075320638584</endTime>
                          </act>
                          <act type="pickup">
                               <serviceId>1</serviceId>
-                              <arrTime>300.0316968059195</arrTime>
-                              <endTime>400.0316968059195</endTime>
+                              <arrTime>300.0320749869164</arrTime>
+                              <endTime>400.0320749869164</endTime>
                          </act>
-                         <end>400.0316968059195</end>
+                         <end>400.0320749869164</end>
                     </route>
                     <route>
                          <driverId>noDriver</driverId>
@@ -262,15 +262,15 @@
                          </act>
                          <act type="pickup">
                               <serviceId>2</serviceId>
-                              <arrTime>200.03057736616196</arrTime>
-                              <endTime>300.030577366162</endTime>
+                              <arrTime>200.03075320638584</arrTime>
+                              <endTime>300.03075320638584</endTime>
                          </act>
                          <act type="pickup">
                               <serviceId>1</serviceId>
-                              <arrTime>300.0316968059195</arrTime>
-                              <endTime>400.0316968059195</endTime>
+                              <arrTime>300.0320749869164</arrTime>
+                              <endTime>400.0320749869164</endTime>
                          </act>
-                         <end>400.0316968059195</end>
+                         <end>400.0320749869164</end>
                     </route>
                     <route>
                          <driverId>noDriver</driverId>
