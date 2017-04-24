@@ -22,10 +22,20 @@ public class Truck {
     public String id;
     public Point coord;
     public int priority;
+    public Double pph;
+    public Double ppk;
+    public Integer volume;
+    public Integer max;
+    public String type;
     public Truck(JSONObject obj) throws JSONException, IOException{
         id = obj.getString("id");
         coord = Reader.readGeoJSONPoint(obj.getString("geometry"));
         priority = Integer.parseInt(obj.getString("priority"));
+        pph = Double.parseDouble(obj.getString("price_per_hour"));
+        ppk = Double.parseDouble(obj.getString("price_per_kilometer"));
+        volume = Integer.parseInt(obj.getString("volume"));
+        max = Integer.parseInt(obj.getString("max"));
+        type = obj.getString("type");
     }
     
     public static List<Truck> fromArray(JSONArray ar) throws JSONException, ParseException, IOException{

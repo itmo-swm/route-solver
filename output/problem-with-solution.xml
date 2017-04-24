@@ -61,12 +61,12 @@
           <type>
                <id>vehicleType</id>
                <capacity-dimensions>
-                    <dimension index="0">100</dimension>
+                    <dimension index="0">1000</dimension>
                </capacity-dimensions>
                <costs>
                     <fixed>0.0</fixed>
-                    <distance>1.0</distance>
-                    <time>0.0</time>
+                    <distance>10.0</distance>
+                    <time>200.0</time>
                     <service>10.0</service>
                     <wait>0.0</wait>
                </costs>
@@ -79,7 +79,7 @@
                     <coord x="30.310221111389417" y="59.96497880863895"/>
                </location>
                <capacity-dimensions>
-                    <dimension index="0">20</dimension>
+                    <dimension index="0">10</dimension>
                </capacity-dimensions>
                <duration>100.0</duration>
                <timeWindows>
@@ -95,7 +95,7 @@
                     <coord x="30.309436296769103" y="59.963915243980495"/>
                </location>
                <capacity-dimensions>
-                    <dimension index="0">20</dimension>
+                    <dimension index="0">10</dimension>
                </capacity-dimensions>
                <duration>100.0</duration>
                <timeWindows>
@@ -111,7 +111,7 @@
                     <coord x="30.294225757932338" y="59.95509635772744"/>
                </location>
                <capacity-dimensions>
-                    <dimension index="0">20</dimension>
+                    <dimension index="0">10</dimension>
                </capacity-dimensions>
                <duration>100.0</duration>
                <timeWindows>
@@ -123,11 +123,12 @@
           </service>
           <service id="4" type="pickup">
                <location>
-                    <id>[x=30.214502459393536][y=59.95308963194999]</id>
-                    <coord x="30.214502459393536" y="59.95308963194999"/>
+                    <id>[x=30.21298586844709][y=59.95326616806133]</id>
+                    <coord x="30.21298586844709" y="59.95326616806133"/>
                </location>
                <capacity-dimensions>
-                    <dimension index="0">20</dimension>
+                    <dimension index="0">0</dimension>
+                    <dimension index="1">10</dimension>
                </capacity-dimensions>
                <duration>100.0</duration>
                <timeWindows>
@@ -143,7 +144,8 @@
                     <coord x="30.308945721003706" y="59.9641840248547"/>
                </location>
                <capacity-dimensions>
-                    <dimension index="0">20</dimension>
+                    <dimension index="0">0</dimension>
+                    <dimension index="1">10</dimension>
                </capacity-dimensions>
                <duration>100.0</duration>
                <timeWindows>
@@ -159,7 +161,7 @@
                     <coord x="30.250399803739285" y="59.96114333097791"/>
                </location>
                <capacity-dimensions>
-                    <dimension index="0">20</dimension>
+                    <dimension index="0">10</dimension>
                </capacity-dimensions>
                <duration>100.0</duration>
                <timeWindows>
@@ -176,6 +178,8 @@
                </location>
                <capacity-dimensions>
                     <dimension index="0">10000</dimension>
+                    <dimension index="1">10000</dimension>
+                    <dimension index="2">10000</dimension>
                </capacity-dimensions>
                <duration>100.0</duration>
                <timeWindows>
@@ -200,21 +204,21 @@
                               <endTime>100.01289460498921</endTime>
                          </act>
                          <act type="pickup">
-                              <serviceId>5</serviceId>
-                              <arrTime>100.03019382481666</arrTime>
-                              <endTime>200.03019382481665</endTime>
-                         </act>
-                         <act type="pickup">
                               <serviceId>2</serviceId>
-                              <arrTime>200.03075320638584</arrTime>
-                              <endTime>300.03075320638584</endTime>
+                              <arrTime>100.03047679047478</arrTime>
+                              <endTime>200.03047679047478</endTime>
                          </act>
                          <act type="pickup">
                               <serviceId>1</serviceId>
-                              <arrTime>300.0320749869164</arrTime>
-                              <endTime>400.0320749869164</endTime>
+                              <arrTime>200.03179857100534</arrTime>
+                              <endTime>300.0317985710053</endTime>
                          </act>
-                         <end>400.0320749869164</end>
+                         <act type="pickup">
+                              <serviceId>6</serviceId>
+                              <arrTime>300.09174270948324</arrTime>
+                              <endTime>400.09174270948324</endTime>
+                         </act>
+                         <end>400.09174270948324</end>
                     </route>
                     <route>
                          <driverId>noDriver</driverId>
@@ -222,21 +226,15 @@
                          <start>0.0</start>
                          <act type="pickup">
                               <serviceId>4</serviceId>
-                              <arrTime>0.021249683620958016</arrTime>
-                              <endTime>100.02124968362095</endTime>
+                              <arrTime>0.022742135178150456</arrTime>
+                              <endTime>100.02274213517815</endTime>
                          </act>
-                         <end>100.02124968362095</end>
-                    </route>
-                    <route>
-                         <driverId>noDriver</driverId>
-                         <vehicleId>http://sdn.naulinux.ru:8128/Plone/sity-dashboard-1/truck-3</vehicleId>
-                         <start>0.0</start>
                          <act type="pickup">
-                              <serviceId>6</serviceId>
-                              <arrTime>0.014980485463621648</arrTime>
-                              <endTime>100.01498048546362</endTime>
+                              <serviceId>5</serviceId>
+                              <arrTime>100.11932108163982</arrTime>
+                              <endTime>200.11932108163984</endTime>
                          </act>
-                         <end>100.01498048546362</end>
+                         <end>200.11932108163984</end>
                     </route>
                </routes>
                <unassignedJobs>
@@ -256,21 +254,21 @@
                               <endTime>100.01289460498921</endTime>
                          </act>
                          <act type="pickup">
-                              <serviceId>5</serviceId>
-                              <arrTime>100.03019382481666</arrTime>
-                              <endTime>200.03019382481665</endTime>
-                         </act>
-                         <act type="pickup">
                               <serviceId>2</serviceId>
-                              <arrTime>200.03075320638584</arrTime>
-                              <endTime>300.03075320638584</endTime>
+                              <arrTime>100.03047679047478</arrTime>
+                              <endTime>200.03047679047478</endTime>
                          </act>
                          <act type="pickup">
                               <serviceId>1</serviceId>
-                              <arrTime>300.0320749869164</arrTime>
-                              <endTime>400.0320749869164</endTime>
+                              <arrTime>200.03179857100534</arrTime>
+                              <endTime>300.0317985710053</endTime>
                          </act>
-                         <end>400.0320749869164</end>
+                         <act type="pickup">
+                              <serviceId>6</serviceId>
+                              <arrTime>300.09174270948324</arrTime>
+                              <endTime>400.09174270948324</endTime>
+                         </act>
+                         <end>400.09174270948324</end>
                     </route>
                     <route>
                          <driverId>noDriver</driverId>
@@ -278,21 +276,15 @@
                          <start>0.0</start>
                          <act type="pickup">
                               <serviceId>4</serviceId>
-                              <arrTime>0.021249683620958016</arrTime>
-                              <endTime>100.02124968362095</endTime>
+                              <arrTime>0.022742135178150456</arrTime>
+                              <endTime>100.02274213517815</endTime>
                          </act>
-                         <end>100.02124968362095</end>
-                    </route>
-                    <route>
-                         <driverId>noDriver</driverId>
-                         <vehicleId>http://sdn.naulinux.ru:8128/Plone/sity-dashboard-1/truck-3</vehicleId>
-                         <start>0.0</start>
                          <act type="pickup">
-                              <serviceId>6</serviceId>
-                              <arrTime>0.014980485463621648</arrTime>
-                              <endTime>100.01498048546362</endTime>
+                              <serviceId>5</serviceId>
+                              <arrTime>100.11932108163982</arrTime>
+                              <endTime>200.11932108163984</endTime>
                          </act>
-                         <end>100.01498048546362</end>
+                         <end>200.11932108163984</end>
                     </route>
                </routes>
                <unassignedJobs>

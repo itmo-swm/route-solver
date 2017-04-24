@@ -25,10 +25,16 @@ public class SGB {
     public Point coord;
     public int state;
     public Date cleaning_time;
+    public Integer volume;
+    public Integer max;
+    public String type;
     public SGB(JSONObject obj) throws JSONException, ParseException, IOException{
         id = obj.getString("id");
         coord = Reader.readGeoJSONPoint(obj.getString("geometry"));
         state = Integer.parseInt(obj.getString("state"));
+        volume = Integer.parseInt(obj.getString("volume"));
+        max = Integer.parseInt(obj.getString("max"));
+        type = obj.getString("type");
         //SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         //cleaning_time = dateFormat.parse(obj.getString("cleaning_time"));
     }

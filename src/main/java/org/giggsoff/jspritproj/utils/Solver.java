@@ -13,6 +13,7 @@ import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.job.Delivery;
 import com.graphhopper.jsprit.core.problem.job.Pickup;
+import com.graphhopper.jsprit.core.problem.job.Service;
 import com.graphhopper.jsprit.core.problem.solution.SolutionCostCalculator;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
@@ -33,6 +34,7 @@ import org.giggsoff.jspritproj.models.Dump;
 import org.giggsoff.jspritproj.models.Point;
 import org.giggsoff.jspritproj.models.SGB;
 import org.giggsoff.jspritproj.models.Truck;
+import org.giggsoff.jspritproj.models.Types;
 
 /**
  *
@@ -41,6 +43,8 @@ import org.giggsoff.jspritproj.models.Truck;
 public class Solver {
 
     public static Map<String, Map<String, GHResponse>> hashMap = new HashMap<>();
+    
+    public static Types types = new Types();
     
     public static GHResponse getRoute(Point p1, Point p2, GraphhopperWorker gw){
         if (hashMap.containsKey(p1.toString())) {
@@ -71,18 +75,20 @@ public class Solver {
          */
         final int WEIGHT_INDEX = 0;
         final double max_speed_mps = 3.6*50;
-        VehicleTypeImpl.Builder vehicleTypeBuilder = VehicleTypeImpl.Builder.newInstance("vehicleType").addCapacityDimension(WEIGHT_INDEX, 100).setMaxVelocity(max_speed_mps).setCostPerServiceTime(10);
-        VehicleType vehicleType = vehicleTypeBuilder.build();
+        
 
         VehicleRoutingProblem.Builder vrpBuilder = VehicleRoutingProblem.Builder.newInstance();
         /*
          * get a vehicle-builder and build a vehicle located at (10,10) with type "vehicleType"
          */
         for (Truck tr : trList) {
+            VehicleTypeImpl.Builder vehicleTypeBuilder = VehicleTypeImpl.Builder.newInstance("vehicleType").addCapacityDimension(types.get(tr.type), tr.max).setMaxVelocity(max_speed_mps).setCostPerServiceTime(10).setCostPerTransportTime(tr.pph).setCostPerDistance(tr.ppk);
+            VehicleType vehicleType = vehicleTypeBuilder.build();
             VehicleImpl.Builder vehicleBuilder = VehicleImpl.Builder.newInstance(tr.id);
             vehicleBuilder.setStartLocation(Location.newInstance(tr.coord.x, tr.coord.y));
             vehicleBuilder.setType(vehicleType);
             vehicleBuilder.setReturnToDepot(false);
+            
             VehicleImpl vehicle = vehicleBuilder.build();
             vrpBuilder.addVehicle(vehicle);
         }
@@ -92,17 +98,21 @@ public class Solver {
          */
         int i = 0;
         for (SGB sgb : sgbList) {
-            Pickup service = Pickup.Builder.newInstance(Integer.toString(++i)).setServiceTime(100).addSizeDimension(WEIGHT_INDEX, 20).setLocation(Location.newInstance(sgb.coord.x, sgb.coord.y)).build();
+            Pickup service = Pickup.Builder.newInstance(Integer.toString(++i)).setServiceTime(100).addSizeDimension(types.get(sgb.type), sgb.volume).setLocation(Location.newInstance(sgb.coord.x, sgb.coord.y)).build();
             vrpBuilder.addJob(service);
         }
         
         for (Dump dump : dumpList) {
-            Delivery service = Delivery.Builder.newInstance(Integer.toString(++i)).setServiceTime(100).addSizeDimension(WEIGHT_INDEX, 10000).setLocation(Location.newInstance(dump.coord.x, dump.coord.y)).build();
-            vrpBuilder.addJob(service);
+            Service.Builder<Delivery> service = Delivery.Builder.newInstance(Integer.toString(++i)).setServiceTime(100).setLocation(Location.newInstance(dump.coord.x, dump.coord.y));
+            for(int j=0;j<types.all().size();j++){
+                service.addSizeDimension(j, 10000);
+            }            
+            vrpBuilder.addJob(service.build());
         }
 
         SolutionCostCalculator costCalculator = (VehicleRoutingProblemSolution solution) -> {
-            double costs = 0.;
+            double time = 0.;
+            double km = 0.;
             List<VehicleRoute> routes = (List<VehicleRoute>) solution.getRoutes();
             for (VehicleRoute route : routes) {
                 List<Location> lc = new ArrayList<>();
@@ -114,7 +124,8 @@ public class Solver {
                 for (int i1 = 0; i1 < lc.size() - 1; i1++) {
                     GHResponse grp = getRoute(new Point(lc.get(i1).getCoordinate()), new Point(lc.get(i1+1).getCoordinate()), gw);
                     if(grp!=null){
-                        costs += grp.getBest().getDistance();
+                        km += grp.getBest().getDistance()*route.getVehicle().getType().getVehicleCostParams().perDistanceUnit/1000;
+                        time += grp.getBest().getTime()*route.getVehicle().getType().getVehicleCostParams().perTransportTimeUnit/60/60/1000;
                     }
                 }
                 //costs += route.getVehicle().getType().getVehicleCostParams().fix;
@@ -123,7 +134,7 @@ public class Solver {
                 costs+=contrib.getCosts(route);
                 }*/
             }
-            return costs;
+            return km+time;
         };
         
         vrpBuilder.setFleetSize(VehicleRoutingProblem.FleetSize.FINITE);
