@@ -139,6 +139,7 @@ public class Main {
             } while (t < maxTime * 1000 && trCount > 0);
             if (!show) {
                 String response = ar.toString();
+                he.getResponseHeaders().set("Content-Type", "application/json");
                 he.sendResponseHeaders(200, response.length());
                 OutputStream os = he.getResponseBody();
                 os.write(response.getBytes());
@@ -197,6 +198,7 @@ public class Main {
                     ar.put(tcoords);
                 }
                 String response = ar.toString();
+                he.getResponseHeaders().set("Content-Type", "application/json");
                 he.sendResponseHeaders(200, response.length());
                 OutputStream os = he.getResponseBody();
                 os.write(response.getBytes());
