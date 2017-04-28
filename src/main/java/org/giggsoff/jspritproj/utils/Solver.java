@@ -105,7 +105,7 @@ public class Solver {
         for (Dump dump : dumpList) {
             Service.Builder<Delivery> service = Delivery.Builder.newInstance(Integer.toString(++i)).setServiceTime(100).setLocation(Location.newInstance(dump.coord.x, dump.coord.y));
             for(int j=0;j<types.all().size();j++){
-                service.addSizeDimension(j, 10000);
+                service.addSizeDimension(j, 900);
             }            
             vrpBuilder.addJob(service.build());
         }
