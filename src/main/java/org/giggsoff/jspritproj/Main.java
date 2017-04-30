@@ -1,6 +1,7 @@
 package org.giggsoff.jspritproj;
 
 import com.graphhopper.GHResponse;
+import com.graphhopper.PathWrapper;
 import org.giggsoff.jspritproj.utils.Reader;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
@@ -20,8 +21,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.giggsoff.jspritproj.jenetics.CostsInterface;
+import org.giggsoff.jspritproj.jenetics.Evaluator;
+import org.giggsoff.jspritproj.jenetics.Mark;
+import org.giggsoff.jspritproj.jenetics.SituationInterface;
 import org.giggsoff.jspritproj.models.Dump;
 import org.giggsoff.jspritproj.models.Point;
+import org.giggsoff.jspritproj.models.Polygon;
 import org.giggsoff.jspritproj.models.Region;
 import org.giggsoff.jspritproj.models.SGB;
 import org.giggsoff.jspritproj.models.Truck;
@@ -44,6 +50,7 @@ public class Main {
             HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
             server.createContext("/test", new MyHandler());
             server.createContext("/get_routes", new RealHandler());
+            server.createContext("/get_routes_gen", new GeneticHandler());
             server.start();
         } catch (IOException | JSONException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
@@ -63,7 +70,7 @@ public class Main {
         try {
             gw = new GraphhopperWorker("map.pbf", "output");
             System.out.println("Ready");
-            //doWork(null, true, new JSONArray(), 2300.);
+            //doWorkGenetic(null, new JSONArray(), 2300.);
         } catch (IOException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -95,14 +102,14 @@ public class Main {
             dumpList = new ArrayList<>();
             dumpList.addAll(dlist);
             Long t = 0l;
-            JSONArray ar = new JSONArray();
+            List<Polygon> ar = new ArrayList<>();
             int trCount = trList.size();
             do {
                 VehicleRoutingProblemSolution solve = Solver.solve(trList.subList(0, trCount), sgbList, dumpList, gw, show);
-                if (solve.getUnassignedJobs().size() > 0 && ar.length() > 0) {
+                if (solve.getUnassignedJobs().size() > 0 && ar.size() > 0) {
                     break;
                 }
-                ar = new JSONArray();
+                ar = new ArrayList<>();
                 List<Long> maxT = new ArrayList<>();
                 for (VehicleRoute vr : solve.getRoutes()) {
                     maxT.add(0l);
@@ -112,23 +119,23 @@ public class Main {
                         vehroute.add(new Point(ta.getLocation().getCoordinate()));
                     }
                     vehroute.add(new Point(vr.getEnd().getLocation().getCoordinate()));
-                    List<Point> tcoords = new ArrayList<>();
+                    Polygon tcoords = new Polygon();
                     for (int i = 0; i < vehroute.size() - 1; i++) {
                         if (vehroute.get(i).toString().equals(vehroute.get(i + 1).toString())) {
                             continue;
                         }
-                        GHResponse grp = Solver.getRoute(vehroute.get(i), vehroute.get(i + 1), gw);
-                        maxT.set(maxT.size() - 1, maxT.get(maxT.size() - 1) + grp.getBest().getTime());
+                        PathWrapper grp = Solver.getRoute(vehroute.get(i), vehroute.get(i + 1), gw);
+                        maxT.set(maxT.size() - 1, maxT.get(maxT.size() - 1) + grp.getTime());
                         if (grp != null) {
-                            for (int j = 0; j < grp.getBest().getPoints().size(); j++) {
-                                tcoords.add(new Point(grp.getBest().getPoints().getLon(i), grp.getBest().getPoints().getLat(i)));
+                            for (int j = 0; j < grp.getPoints().size(); j++) {
+                                tcoords.addPoint(new Point(grp.getPoints().getLon(j), grp.getPoints().getLat(j)));
                             }
                         }
                     }
                     if (tcoords.size() == 0) {
-                        tcoords.add(new Point(vehroute.get(0).x, vehroute.get(0).y));
+                        tcoords.addPoint(new Point(vehroute.get(0).x, vehroute.get(0).y));
                     }
-                    ar.put(GeoJson.getGeoJSON(tcoords));
+                    ar.add(tcoords);
                 }
                 for (Long l : maxT) {
                     if (l > t) {
@@ -138,7 +145,7 @@ public class Main {
                 trCount -= 1;
             } while (t < maxTime * 1000 && trCount > 0);
             if (!show) {
-                String response = ar.toString();
+                String response = GeoJson.getGeoJSON(ar).toString();
                 he.getResponseHeaders().set("Content-Type", "application/json");
                 he.sendResponseHeaders(200, response.length());
                 OutputStream os = he.getResponseBody();
@@ -185,10 +192,10 @@ public class Main {
                         if (vehroute.get(i).toString().equals(vehroute.get(i + 1).toString())) {
                             continue;
                         }
-                        GHResponse grp = Solver.getRoute(vehroute.get(i), vehroute.get(i + 1), gw);
+                        PathWrapper grp = Solver.getRoute(vehroute.get(i), vehroute.get(i + 1), gw);
                         if (grp != null) {
-                            for (int j = 0; j < grp.getBest().getPoints().size(); j++) {
-                                tcoords.put((new JSONArray()).put(grp.getBest().getPoints().getLon(i)).put(grp.getBest().getPoints().getLat(i)));
+                            for (int j = 0; j < grp.getPoints().size(); j++) {
+                                tcoords.put((new JSONArray()).put(grp.getPoints().getLon(j)).put(grp.getPoints().getLat(j)));
                             }
                         }
                     }
@@ -241,6 +248,108 @@ public class Main {
                 doWork(httpExchange, false, regs, maxTime);
             } else {
                 doWork(httpExchange, false, new JSONArray(), -1.);
+            }
+        }
+    }
+    
+    static void doWorkGenetic(HttpExchange he, JSONArray regs, Double maxTime) {
+        try {
+            List<Region> rlist = Region.fromArray(Reader.readArray("get_regions"));
+            regionList = new ArrayList<>();
+            if (regs.length() == 0) {
+                regionList.addAll(rlist);
+            } else {
+                for (Region r : rlist) {
+                    regs.forEach(item -> {
+                        if (item.equals(r.id) && !regionList.contains(r)) {
+                            regionList.add(r);
+                        }
+                    });
+                }
+            }
+            List<Truck> tlist = Truck.fromArray(Reader.readArray("get_truck?region=" + regionList.get(0).id));
+            trList = new ArrayList<>();
+            trList.addAll(tlist);
+            trList.sort((Truck o1, Truck o2) -> o2.priority - o1.priority);
+            List<SGB> list = SGB.fromArray(Reader.readArray("get_sgb?region=" + regionList.get(0).id));
+            sgbList = new ArrayList<>();
+            sgbList.addAll(list);
+            List<Dump> dlist = Dump.fromArray(Reader.readArray("get_waste_dumps?region=" + regionList.get(0).id));
+            dumpList = new ArrayList<>();
+            dumpList.addAll(dlist);
+            Long t = 0l;
+            Integer lproc = Integer.MAX_VALUE;
+            List<Polygon> ar = new ArrayList<>();
+            int trCount = trList.size();
+            do {
+                Mark solve = Solver.solve(trList.subList(0, trCount), sgbList, dumpList, gw);
+                if(ar.size()> 0 && solve.processed<lproc){
+                    break;
+                }else{
+                    lproc = solve.processed;
+                }
+                ar = new ArrayList<>();
+                List<Long> maxT = new ArrayList<>();
+                for (Polygon vr : solve.getRoutes()) {
+                    maxT.add(0l);
+                    Polygon tcoords = new Polygon();
+                    for (int i = 0; i < vr.size() - 1; i++) {
+                        if (vr.get(i).toString().equals(vr.get(i + 1).toString())) {
+                            continue;
+                        }
+                        PathWrapper grp = Solver.getRoute(vr.get(i), vr.get(i + 1), gw);
+                        maxT.set(maxT.size() - 1, maxT.get(maxT.size() - 1) + grp.getTime());
+                        if (grp != null) {
+                            for (int j = 0; j < grp.getPoints().size(); j++) {
+                                tcoords.addPoint(new Point(grp.getPoints().getLon(j), grp.getPoints().getLat(j)));
+                            }
+                        }
+                    }
+                    if (tcoords.size() == 0) {
+                        tcoords.addPoint(new Point(vr.get(0).x, vr.get(0).y));
+                    }
+                    ar.add(tcoords);
+                }
+                for (Long l : maxT) {
+                    if (l > t) {
+                        t = l;
+                    }
+                }
+                trCount -= 1;
+            } while (t < maxTime * 1000 && trCount > 0);
+                String response = GeoJson.getGeoJSON(ar).toString();
+                he.getResponseHeaders().set("Content-Type", "application/json");
+                he.sendResponseHeaders(200, response.length());
+                OutputStream os = he.getResponseBody();
+                os.write(response.getBytes());
+                os.close();
+        } catch (JSONException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ParseException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    static class GeneticHandler implements HttpHandler {
+
+        @Override
+        public void handle(HttpExchange httpExchange) {
+            JSONArray regs = new JSONArray();
+            Double maxTime = -1.;
+            if (httpExchange.getRequestURI().getQuery() != null) {
+                Map<String, String> params = queryToMap(httpExchange.getRequestURI().getQuery());
+                for (String header : params.keySet()) {
+                    if (header.equals("regions")) {
+                        regs = new JSONArray(java.net.URLDecoder.decode(params.get(header)));
+                    } else if (header.equals("max_time_4_garbage_collection")) {
+                        maxTime = Double.parseDouble(java.net.URLDecoder.decode(params.get(header)));
+                    }
+                    System.out.println(header + "->" + params.get(header));
+                }
+                doWorkGenetic(httpExchange, regs, maxTime);
+            } else {
+                doWorkGenetic(httpExchange, new JSONArray(), -1.);
             }
         }
     }

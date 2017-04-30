@@ -15,6 +15,11 @@ public class Point {
     public Double x;    
     public Double y;    
     
+    public Point(){
+        x = 0.;
+        y = 0.;
+    }
+    
     public Point(Double _x, Double _y){
         x = _x;
         y = _y;
@@ -23,6 +28,10 @@ public class Point {
     public Point(Coordinate coord){
         x = coord.getX();
         y = coord.getY();
+    }
+    
+    public Point getPoint(){
+        return this;
     }
     
     @Override

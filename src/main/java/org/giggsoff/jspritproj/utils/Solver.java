@@ -6,6 +6,7 @@
 package org.giggsoff.jspritproj.utils;
 
 import com.graphhopper.GHResponse;
+import com.graphhopper.PathWrapper;
 import com.graphhopper.jsprit.analysis.toolbox.GraphStreamViewer;
 import com.graphhopper.jsprit.analysis.toolbox.Plotter;
 import com.graphhopper.jsprit.core.algorithm.VehicleRoutingAlgorithm;
@@ -30,8 +31,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.giggsoff.jspritproj.alg.VehicleRoutingAlgorithmBuilder;
+import org.giggsoff.jspritproj.jenetics.CostsInterface;
+import org.giggsoff.jspritproj.jenetics.Evaluator;
+import org.giggsoff.jspritproj.jenetics.Mark;
+import org.giggsoff.jspritproj.jenetics.SituationInterface;
 import org.giggsoff.jspritproj.models.Dump;
 import org.giggsoff.jspritproj.models.Point;
+import org.giggsoff.jspritproj.models.Polygon;
 import org.giggsoff.jspritproj.models.SGB;
 import org.giggsoff.jspritproj.models.Truck;
 import org.giggsoff.jspritproj.models.Types;
@@ -42,29 +48,126 @@ import org.giggsoff.jspritproj.models.Types;
  */
 public class Solver {
 
-    public static Map<String, Map<String, GHResponse>> hashMap = new HashMap<>();
+    public static Map<String, Map<String, PathWrapper>> hashMap = new HashMap<>();
     
     public static Types types = new Types();
     
-    public static GHResponse getRoute(Point p1, Point p2, GraphhopperWorker gw){
+    public static Double curMax = Double.MIN_VALUE;
+    
+    public static PathWrapper getRoute(Point p1, Point p2, GraphhopperWorker gw){
         if (hashMap.containsKey(p1.toString())) {
                         if (hashMap.get(p1.toString()).containsKey(p2.toString())) {
                             return hashMap.get(p1.toString()).get(p2.toString());
                         } else {
                             GHResponse resp = gw.getRoute(p1.y, p1.x, p2.y, p2.x);
                             if (resp != null) {
-                                hashMap.get(p1.toString()).put(p2.toString(), resp);
-                                return resp;
+                                hashMap.get(p1.toString()).put(p2.toString(), resp.getBest());
+                                return resp.getBest();
                             }
                         }
                     } else {
                         GHResponse resp = gw.getRoute(p1.y, p1.x, p2.y, p2.x);
                         if (resp != null) {
                             hashMap.put(p1.toString(), new HashMap<>());
-                            hashMap.get(p1.toString()).put(p2.toString(), resp);
+                            hashMap.get(p1.toString()).put(p2.toString(), resp.getBest());
+                            return resp.getBest();
                         }
                     }
         return null;
+    }
+    
+    public static Mark solve(List<Truck> trList, List<SGB> sgbList, List<Dump> dumpList, GraphhopperWorker gw){      
+        List<Point> pts = new ArrayList<>();
+        pts.addAll(sgbList);
+        pts.addAll(dumpList);
+        List<String> types = new ArrayList<>();
+        for(SGB sgb:sgbList){
+            if(!types.contains(sgb.type)){
+                types.add(sgb.type);
+            }
+        }
+        for(Dump dump:dumpList){
+            dump.prices = new HashMap<>();
+            for(String type:types){
+                dump.prices.put(type, 100.);
+            }
+        }
+        curMax = Double.MIN_VALUE;
+        return Evaluator.Evaluate(new SituationInterface(){
+            @Override
+            public Integer getTrucks() {
+                return trList.size();
+            }
+
+            @Override
+            public Integer getSGBs() {
+                return sgbList.size();
+            }
+
+            @Override
+            public Integer getDumps() {
+                return dumpList.size();
+            }
+
+            @Override
+            public Point getPointFirst(Integer tr) {
+                return trList.get(tr).getPoint();
+            }
+
+            @Override
+            public Point getPoint(Integer obj) {
+                return pts.get(obj).getPoint();
+            }
+            
+        }, new CostsInterface() {
+            @Override
+            public List<Double> getRouteCosts(Integer obj1, Integer obj2) {
+                List<Double> ld = new ArrayList<>();
+                PathWrapper gr = getRoute(pts.get(obj1).getPoint(), pts.get(obj2).getPoint(), gw);
+                ld.add(gr.getDistance());
+                ld.add((double)gr.getTime()/1000);
+                return ld;
+            }
+
+            @Override
+            public Truck getTruckAttrs(Integer tr) {
+                return trList.get(tr);
+            }
+
+            @Override
+            public Double getMaxRouteTruckCost() {
+                return curMax;
+            }
+
+            @Override
+            public List<Double> getFirstRouteCosts(Integer obj, Integer tr) {
+                List<Double> ld = new ArrayList<>();
+                PathWrapper gr = getRoute(pts.get(obj).getPoint(), trList.get(tr).getPoint(), gw);
+                ld.add(gr.getDistance());
+                ld.add((double)gr.getTime()/1000);
+                return ld;
+            }
+
+            @Override
+            public Map<String, Double> getBinAttrs(Integer obj) {
+                Map<String, Double> ld = new HashMap<>();         
+                ld.put(sgbList.get(obj).type, (double)sgbList.get(obj).volume);
+                return ld;
+            }
+
+            @Override
+            public Map<String, Double> getDumpAttrs(Integer obj) {
+                return dumpList.get(obj-sgbList.size()).prices;
+            }
+
+            @Override
+            public Double updateMaxRouteTruckCost(Double val) {
+                if(curMax<val){
+                    curMax = val;
+                }
+                return val;
+            }
+        });
     }
 
     public static VehicleRoutingProblemSolution solve(List<Truck> trList, List<SGB> sgbList, List<Dump> dumpList, GraphhopperWorker gw, boolean showPlot) {
@@ -122,10 +225,10 @@ public class Solver {
                 }
                 lc.add(route.getEnd().getLocation());
                 for (int i1 = 0; i1 < lc.size() - 1; i1++) {
-                    GHResponse grp = getRoute(new Point(lc.get(i1).getCoordinate()), new Point(lc.get(i1+1).getCoordinate()), gw);
+                    PathWrapper grp = getRoute(new Point(lc.get(i1).getCoordinate()), new Point(lc.get(i1+1).getCoordinate()), gw);
                     if(grp!=null){
-                        km += grp.getBest().getDistance()*route.getVehicle().getType().getVehicleCostParams().perDistanceUnit/1000;
-                        time += grp.getBest().getTime()*route.getVehicle().getType().getVehicleCostParams().perTransportTimeUnit/60/60/1000;
+                        km += grp.getDistance()*route.getVehicle().getType().getVehicleCostParams().perDistanceUnit/1000;
+                        time += grp.getTime()*route.getVehicle().getType().getVehicleCostParams().perTransportTimeUnit/60/60/1000;
                     }
                 }
                 //costs += route.getVehicle().getType().getVehicleCostParams().fix;

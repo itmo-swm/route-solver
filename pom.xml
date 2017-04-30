@@ -37,6 +37,11 @@
             <version>0.8.2</version>
             <type>jar</type>
         </dependency>
+        <dependency>
+            <groupId>io.jenetics</groupId>
+            <artifactId>jenetics</artifactId>
+            <version>3.8.0</version>
+        </dependency>
     </dependencies>
   <profiles>
     <profile>

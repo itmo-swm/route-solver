@@ -6,15 +6,15 @@
      </problemType>
      <vehicles>
           <vehicle>
-               <id>http://sdn.naulinux.ru:8128/Plone/track-1</id>
+               <id>http://sdn.naulinux.ru:8128/Plone/swm/map/waste-management-operator-1/region-1/truck-1-1</id>
                <typeId>vehicleType</typeId>
                <startLocation>
-                    <id>[x=30.287251176302764][y=59.94425080338844]</id>
-                    <coord x="30.287251176302764" y="59.94425080338844"/>
+                    <id>[x=30.299092626189097][y=59.97329637899859]</id>
+                    <coord x="30.299092626189097" y="59.97329637899859"/>
                </startLocation>
                <endLocation>
-                    <id>[x=30.287251176302764][y=59.94425080338844]</id>
-                    <coord x="30.287251176302764" y="59.94425080338844"/>
+                    <id>[x=30.299092626189097][y=59.97329637899859]</id>
+                    <coord x="30.299092626189097" y="59.97329637899859"/>
                </endLocation>
                <timeSchedule>
                     <start>0.0</start>
@@ -23,15 +23,15 @@
                <returnToDepot>false</returnToDepot>
           </vehicle>
           <vehicle>
-               <id>http://sdn.naulinux.ru:8128/Plone/sity-dashboard-1/truck-2</id>
+               <id>http://sdn.naulinux.ru:8128/Plone/swm/map/waste-management-operator-1/region-1/truck-1-2</id>
                <typeId>vehicleType</typeId>
                <startLocation>
-                    <id>[x=30.235636925323394][y=59.95529947444449]</id>
-                    <coord x="30.235636925323394" y="59.95529947444449"/>
+                    <id>[x=30.324498509974102][y=59.95714324727076]</id>
+                    <coord x="30.324498509974102" y="59.95714324727076"/>
                </startLocation>
                <endLocation>
-                    <id>[x=30.235636925323394][y=59.95529947444449]</id>
-                    <coord x="30.235636925323394" y="59.95529947444449"/>
+                    <id>[x=30.324498509974102][y=59.95714324727076]</id>
+                    <coord x="30.324498509974102" y="59.95714324727076"/>
                </endLocation>
                <timeSchedule>
                     <start>0.0</start>
@@ -40,15 +40,15 @@
                <returnToDepot>false</returnToDepot>
           </vehicle>
           <vehicle>
-               <id>http://sdn.naulinux.ru:8128/Plone/sity-dashboard-1/truck-3</id>
+               <id>http://sdn.naulinux.ru:8128/Plone/swm/map/waste-management-operator-1/region-1/truck-1-3</id>
                <typeId>vehicleType</typeId>
                <startLocation>
-                    <id>[x=30.26535043678692][y=59.96019807111909]</id>
-                    <coord x="30.26535043678692" y="59.96019807111909"/>
+                    <id>[x=30.20845541916991][y=59.94063830071108]</id>
+                    <coord x="30.20845541916991" y="59.94063830071108"/>
                </startLocation>
                <endLocation>
-                    <id>[x=30.26535043678692][y=59.96019807111909]</id>
-                    <coord x="30.26535043678692" y="59.96019807111909"/>
+                    <id>[x=30.20845541916991][y=59.94063830071108]</id>
+                    <coord x="30.20845541916991" y="59.94063830071108"/>
                </endLocation>
                <timeSchedule>
                     <start>0.0</start>
@@ -75,11 +75,13 @@
      <services>
           <service id="1" type="pickup">
                <location>
-                    <id>[x=30.310221111389417][y=59.96497880863895]</id>
-                    <coord x="30.310221111389417" y="59.96497880863895"/>
+                    <id>[x=30.299741720769795][y=59.94327685015934]</id>
+                    <coord x="30.299741720769795" y="59.94327685015934"/>
                </location>
                <capacity-dimensions>
-                    <dimension index="0">10</dimension>
+                    <dimension index="0">0</dimension>
+                    <dimension index="1">0</dimension>
+                    <dimension index="2">10</dimension>
                </capacity-dimensions>
                <duration>100.0</duration>
                <timeWindows>
@@ -91,11 +93,12 @@
           </service>
           <service id="2" type="pickup">
                <location>
-                    <id>[x=30.309436296769103][y=59.963915243980495]</id>
-                    <coord x="30.309436296769103" y="59.963915243980495"/>
+                    <id>[x=30.22387275658557][y=59.95681022087722]</id>
+                    <coord x="30.22387275658557" y="59.95681022087722"/>
                </location>
                <capacity-dimensions>
-                    <dimension index="0">10</dimension>
+                    <dimension index="0">0</dimension>
+                    <dimension index="1">10</dimension>
                </capacity-dimensions>
                <duration>100.0</duration>
                <timeWindows>
@@ -107,8 +110,8 @@
           </service>
           <service id="3" type="pickup">
                <location>
-                    <id>[x=30.294225757932338][y=59.95509635772744]</id>
-                    <coord x="30.294225757932338" y="59.95509635772744"/>
+                    <id>[x=30.186107253661145][y=59.94229883799058]</id>
+                    <coord x="30.186107253661145" y="59.94229883799058"/>
                </location>
                <capacity-dimensions>
                     <dimension index="0">10</dimension>
@@ -123,12 +126,13 @@
           </service>
           <service id="4" type="pickup">
                <location>
-                    <id>[x=30.21298586844709][y=59.95326616806133]</id>
-                    <coord x="30.21298586844709" y="59.95326616806133"/>
+                    <id>[x=30.260951614002067][y=59.922345393402296]</id>
+                    <coord x="30.260951614002067" y="59.922345393402296"/>
                </location>
                <capacity-dimensions>
                     <dimension index="0">0</dimension>
-                    <dimension index="1">10</dimension>
+                    <dimension index="1">0</dimension>
+                    <dimension index="2">10</dimension>
                </capacity-dimensions>
                <duration>100.0</duration>
                <timeWindows>
@@ -140,8 +144,8 @@
           </service>
           <service id="5" type="pickup">
                <location>
-                    <id>[x=30.308945721003706][y=59.9641840248547]</id>
-                    <coord x="30.308945721003706" y="59.9641840248547"/>
+                    <id>[x=30.299779271696146][y=59.96642366865931]</id>
+                    <coord x="30.299779271696146" y="59.96642366865931"/>
                </location>
                <capacity-dimensions>
                     <dimension index="0">0</dimension>
@@ -157,8 +161,26 @@
           </service>
           <service id="6" type="pickup">
                <location>
-                    <id>[x=30.250399803739285][y=59.96114333097791]</id>
-                    <coord x="30.250399803739285" y="59.96114333097791"/>
+                    <id>[x=30.326558446497042][y=59.95817453358058]</id>
+                    <coord x="30.326558446497042" y="59.95817453358058"/>
+               </location>
+               <capacity-dimensions>
+                    <dimension index="0">0</dimension>
+                    <dimension index="1">0</dimension>
+                    <dimension index="2">10</dimension>
+               </capacity-dimensions>
+               <duration>100.0</duration>
+               <timeWindows>
+                    <timeWindow>
+                         <start>0.0</start>
+                         <end>1.7976931348623157E308</end>
+                    </timeWindow>
+               </timeWindows>
+          </service>
+          <service id="7" type="pickup">
+               <location>
+                    <id>[x=30.27780661544907][y=59.94373360420172]</id>
+                    <coord x="30.27780661544907" y="59.94373360420172"/>
                </location>
                <capacity-dimensions>
                     <dimension index="0">10</dimension>
@@ -171,15 +193,15 @@
                     </timeWindow>
                </timeWindows>
           </service>
-          <service id="7" type="delivery">
+          <service id="8" type="delivery">
                <location>
-                    <id>[x=30.34613966195146][y=59.973831907269044]</id>
-                    <coord x="30.34613966195146" y="59.973831907269044"/>
+                    <id>[x=30.39590964277709][y=59.87763776452673]</id>
+                    <coord x="30.39590964277709" y="59.87763776452673"/>
                </location>
                <capacity-dimensions>
-                    <dimension index="0">10000</dimension>
-                    <dimension index="1">10000</dimension>
-                    <dimension index="2">10000</dimension>
+                    <dimension index="0">900</dimension>
+                    <dimension index="1">900</dimension>
+                    <dimension index="2">900</dimension>
                </capacity-dimensions>
                <duration>100.0</duration>
                <timeWindows>
@@ -196,49 +218,60 @@
                <routes>
                     <route>
                          <driverId>noDriver</driverId>
-                         <vehicleId>http://sdn.naulinux.ru:8128/Plone/track-1</vehicleId>
+                         <vehicleId>http://sdn.naulinux.ru:8128/Plone/swm/map/waste-management-operator-1/region-1/truck-1-1</vehicleId>
                          <start>0.0</start>
                          <act type="pickup">
+                              <serviceId>7</serviceId>
+                              <arrTime>0.036428723652018775</arrTime>
+                              <endTime>100.03642872365202</endTime>
+                         </act>
+                         <act type="pickup">
                               <serviceId>3</serviceId>
-                              <arrTime>0.01289460498921093</arrTime>
-                              <endTime>100.01289460498921</endTime>
+                              <arrTime>100.12813930922638</arrTime>
+                              <endTime>200.12813930922638</endTime>
                          </act>
-                         <act type="pickup">
-                              <serviceId>2</serviceId>
-                              <arrTime>100.03047679047478</arrTime>
-                              <endTime>200.03047679047478</endTime>
-                         </act>
-                         <act type="pickup">
-                              <serviceId>1</serviceId>
-                              <arrTime>200.03179857100534</arrTime>
-                              <endTime>300.0317985710053</endTime>
-                         </act>
-                         <act type="pickup">
-                              <serviceId>6</serviceId>
-                              <arrTime>300.09174270948324</arrTime>
-                              <endTime>400.09174270948324</endTime>
-                         </act>
-                         <end>400.09174270948324</end>
+                         <end>200.12813930922638</end>
                     </route>
                     <route>
                          <driverId>noDriver</driverId>
-                         <vehicleId>http://sdn.naulinux.ru:8128/Plone/sity-dashboard-1/truck-2</vehicleId>
+                         <vehicleId>http://sdn.naulinux.ru:8128/Plone/swm/map/waste-management-operator-1/region-1/truck-1-2</vehicleId>
+                         <start>0.0</start>
+                         <act type="pickup">
+                              <serviceId>5</serviceId>
+                              <arrTime>0.02640391944752723</arrTime>
+                              <endTime>100.02640391944753</endTime>
+                         </act>
+                         <act type="pickup">
+                              <serviceId>2</serviceId>
+                              <arrTime>100.10291677728522</arrTime>
+                              <endTime>200.1029167772852</endTime>
+                         </act>
+                         <end>200.1029167772852</end>
+                    </route>
+                    <route>
+                         <driverId>noDriver</driverId>
+                         <vehicleId>http://sdn.naulinux.ru:8128/Plone/swm/map/waste-management-operator-1/region-1/truck-1-3</vehicleId>
                          <start>0.0</start>
                          <act type="pickup">
                               <serviceId>4</serviceId>
-                              <arrTime>0.022742135178150456</arrTime>
-                              <endTime>100.02274213517815</endTime>
+                              <arrTime>0.05559209412914514</arrTime>
+                              <endTime>100.05559209412914</endTime>
                          </act>
                          <act type="pickup">
-                              <serviceId>5</serviceId>
-                              <arrTime>100.11932108163982</arrTime>
-                              <endTime>200.11932108163984</endTime>
+                              <serviceId>1</serviceId>
+                              <arrTime>100.09966927944109</arrTime>
+                              <endTime>200.0996692794411</endTime>
                          </act>
-                         <end>200.11932108163984</end>
+                         <act type="pickup">
+                              <serviceId>6</serviceId>
+                              <arrTime>200.13034627000485</arrTime>
+                              <endTime>300.13034627000485</endTime>
+                         </act>
+                         <end>300.13034627000485</end>
                     </route>
                </routes>
                <unassignedJobs>
-                    <job id="7"/>
+                    <job id="8"/>
                </unassignedJobs>
           </solution>
           <solution>
@@ -246,49 +279,60 @@
                <routes>
                     <route>
                          <driverId>noDriver</driverId>
-                         <vehicleId>http://sdn.naulinux.ru:8128/Plone/track-1</vehicleId>
+                         <vehicleId>http://sdn.naulinux.ru:8128/Plone/swm/map/waste-management-operator-1/region-1/truck-1-1</vehicleId>
                          <start>0.0</start>
                          <act type="pickup">
+                              <serviceId>7</serviceId>
+                              <arrTime>0.036428723652018775</arrTime>
+                              <endTime>100.03642872365202</endTime>
+                         </act>
+                         <act type="pickup">
                               <serviceId>3</serviceId>
-                              <arrTime>0.01289460498921093</arrTime>
-                              <endTime>100.01289460498921</endTime>
+                              <arrTime>100.12813930922638</arrTime>
+                              <endTime>200.12813930922638</endTime>
                          </act>
-                         <act type="pickup">
-                              <serviceId>2</serviceId>
-                              <arrTime>100.03047679047478</arrTime>
-                              <endTime>200.03047679047478</endTime>
-                         </act>
-                         <act type="pickup">
-                              <serviceId>1</serviceId>
-                              <arrTime>200.03179857100534</arrTime>
-                              <endTime>300.0317985710053</endTime>
-                         </act>
-                         <act type="pickup">
-                              <serviceId>6</serviceId>
-                              <arrTime>300.09174270948324</arrTime>
-                              <endTime>400.09174270948324</endTime>
-                         </act>
-                         <end>400.09174270948324</end>
+                         <end>200.12813930922638</end>
                     </route>
                     <route>
                          <driverId>noDriver</driverId>
-                         <vehicleId>http://sdn.naulinux.ru:8128/Plone/sity-dashboard-1/truck-2</vehicleId>
+                         <vehicleId>http://sdn.naulinux.ru:8128/Plone/swm/map/waste-management-operator-1/region-1/truck-1-2</vehicleId>
+                         <start>0.0</start>
+                         <act type="pickup">
+                              <serviceId>5</serviceId>
+                              <arrTime>0.02640391944752723</arrTime>
+                              <endTime>100.02640391944753</endTime>
+                         </act>
+                         <act type="pickup">
+                              <serviceId>2</serviceId>
+                              <arrTime>100.10291677728522</arrTime>
+                              <endTime>200.1029167772852</endTime>
+                         </act>
+                         <end>200.1029167772852</end>
+                    </route>
+                    <route>
+                         <driverId>noDriver</driverId>
+                         <vehicleId>http://sdn.naulinux.ru:8128/Plone/swm/map/waste-management-operator-1/region-1/truck-1-3</vehicleId>
                          <start>0.0</start>
                          <act type="pickup">
                               <serviceId>4</serviceId>
-                              <arrTime>0.022742135178150456</arrTime>
-                              <endTime>100.02274213517815</endTime>
+                              <arrTime>0.05559209412914514</arrTime>
+                              <endTime>100.05559209412914</endTime>
                          </act>
                          <act type="pickup">
-                              <serviceId>5</serviceId>
-                              <arrTime>100.11932108163982</arrTime>
-                              <endTime>200.11932108163984</endTime>
+                              <serviceId>1</serviceId>
+                              <arrTime>100.09966927944109</arrTime>
+                              <endTime>200.0996692794411</endTime>
                          </act>
-                         <end>200.11932108163984</end>
+                         <act type="pickup">
+                              <serviceId>6</serviceId>
+                              <arrTime>200.13034627000485</arrTime>
+                              <endTime>300.13034627000485</endTime>
+                         </act>
+                         <end>300.13034627000485</end>
                     </route>
                </routes>
                <unassignedJobs>
-                    <job id="7"/>
+                    <job id="8"/>
                </unassignedJobs>
           </solution>
      </solutions>

@@ -20,7 +20,7 @@ import org.json.JSONObject;
  *
  * @author giggsoff
  */
-public class SGB {
+public class SGB extends Point{
     public String id;
     public Point coord;
     public int state;
@@ -45,5 +45,9 @@ public class SGB {
             temp.add(new SGB(ar.getJSONObject(i)));
         }
         return temp;
+    }
+    @Override
+    public Point getPoint(){
+        return coord;
     }
 }

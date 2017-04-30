@@ -18,7 +18,7 @@ import org.json.JSONObject;
  *
  * @author giggsoff
  */
-public class Truck {
+public class Truck extends Point{
     public String id;
     public Point coord;
     public int priority;
@@ -44,5 +44,9 @@ public class Truck {
             temp.add(new Truck(ar.getJSONObject(i)));
         }
         return temp;
+    }
+    @Override
+    public Point getPoint(){
+        return coord;
     }
 }
