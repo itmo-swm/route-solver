@@ -285,7 +285,7 @@ public class Main {
                 JSONObject ret = new JSONObject();
                 ret.put("numBins", lastList.get(trID).size());
                 ret.put("volume", volume);
-                ret.put("percent", ar.length()/lastList.get(trID).size()*100.);
+                ret.put("percent", 100.*ar.length()/lastList.get(trID).size());
                 String response = ret.toString();
                 httpExchange.getResponseHeaders().set("Content-Type", "application/json");
                 httpExchange.sendResponseHeaders(200, response.length());
