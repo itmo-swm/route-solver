@@ -28,7 +28,7 @@ public class Dump extends Point{
     public Map<String,Double> prices;
     public Dump(JSONObject obj) throws JSONException, ParseException, IOException{
         id = obj.getString("id");
-        coord = Reader.readGeoJSONPoint(obj.getString("geometry"));
+        coord = Reader.readGeoJSONPoint(obj.getString("geometry"),3,id);
         //price = obj.getDouble("price_for_waste_disposal");
         //state = Integer.parseInt(obj.getString("state"));
     }

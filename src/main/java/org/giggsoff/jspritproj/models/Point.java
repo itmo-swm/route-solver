@@ -14,20 +14,28 @@ import com.graphhopper.jsprit.core.util.Coordinate;
 public class Point {
     public Double x;    
     public Double y;    
+    public int type;
+    public String id;
     
     public Point(){
         x = 0.;
         y = 0.;
+        type = 0;
+        id = "";
     }
     
-    public Point(Double _x, Double _y){
+    public Point(Double _x, Double _y, int _type, String _id){
         x = _x;
         y = _y;
+        type = _type;
+        id = _id;
     }
     
-    public Point(Coordinate coord){
+    public Point(Coordinate coord, int _type, String _id){
         x = coord.getX();
         y = coord.getY();
+        type = _type;
+        id = _id;
     }
     
     public Point getPoint(){

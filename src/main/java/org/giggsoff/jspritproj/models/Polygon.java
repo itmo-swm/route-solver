@@ -24,8 +24,8 @@ public class Polygon implements Iterable<Point>{
         polygon.add(pt);
     }
 
-    public void addPoint(double x, double y) {
-        addPoint(new Point(x, y));
+    public void addPoint(double x, double y, int type, String id) {
+        addPoint(new Point(x, y, type, id));
     }
     
     public int size(){

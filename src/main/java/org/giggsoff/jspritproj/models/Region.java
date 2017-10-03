@@ -23,7 +23,7 @@ public class Region {
     public Polygon polygon;
     public Region(JSONObject obj) throws JSONException, ParseException, IOException{
         id = obj.getString("id");
-        polygon = Reader.readGeoJSONPolygon(obj.getString("geometry"));
+        polygon = Reader.readGeoJSONPolygon(obj.getString("geometry"),4,id);
     }
     
     public static List<Region> fromArray(JSONArray ar) throws JSONException, ParseException, IOException{

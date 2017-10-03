@@ -30,7 +30,7 @@ public class SGB extends Point{
     public String type;
     public SGB(JSONObject obj) throws JSONException, ParseException, IOException{
         id = obj.getString("id");
-        coord = Reader.readGeoJSONPoint(obj.getString("geometry"));
+        coord = Reader.readGeoJSONPoint(obj.getString("geometry"),2,id);
         state = Integer.parseInt(obj.getString("state"));
         volume = Integer.parseInt(obj.getString("volume"));
         max = Integer.parseInt(obj.getString("max"));

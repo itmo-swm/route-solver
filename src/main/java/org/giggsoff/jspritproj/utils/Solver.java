@@ -50,11 +50,25 @@ public class Solver {
 
     public static Map<String, Map<String, PathWrapper>> hashMap = new HashMap<>();
     
+    public static Map<String, List<Point>> pMap = new HashMap<>();
+    
     public static Types types = new Types();
     
     public static Double curMax = Double.MIN_VALUE;
     
     public static PathWrapper getRoute(Point p1, Point p2, GraphhopperWorker gw){
+        
+            if(!pMap.containsKey(p1.toString()))
+                pMap.put(p1.toString(), new ArrayList());
+            if(!pMap.get(p1.toString()).contains(p1)){
+                pMap.get(p1.toString()).add(p1);
+            }
+            
+            if(!pMap.containsKey(p2.toString()))
+                pMap.put(p2.toString(), new ArrayList());
+            if(!pMap.get(p2.toString()).contains(p2)){
+                pMap.get(p2.toString()).add(p1);
+            }
         if (hashMap.containsKey(p1.toString())) {
                         if (hashMap.get(p1.toString()).containsKey(p2.toString())) {
                             return hashMap.get(p1.toString()).get(p2.toString());
@@ -65,15 +79,19 @@ public class Solver {
                                 return resp.getBest();
                             }
                         }
-                    } else {
+        } else {
                         GHResponse resp = gw.getRoute(p1.y, p1.x, p2.y, p2.x);
                         if (resp != null) {
                             hashMap.put(p1.toString(), new HashMap<>());
                             hashMap.get(p1.toString()).put(p2.toString(), resp.getBest());
                             return resp.getBest();
                         }
-                    }
+        }
         return null;
+    }
+    
+    public static List<Point> getPoints(double lat,double lon){
+        return pMap.get(lat+";"+lon);
     }
     
     public static Mark solve(List<Truck> trList, List<SGB> sgbList, List<Dump> dumpList, GraphhopperWorker gw){      
@@ -225,7 +243,7 @@ public class Solver {
                 }
                 lc.add(route.getEnd().getLocation());
                 for (int i1 = 0; i1 < lc.size() - 1; i1++) {
-                    PathWrapper grp = getRoute(new Point(lc.get(i1).getCoordinate()), new Point(lc.get(i1+1).getCoordinate()), gw);
+                    PathWrapper grp = getRoute(new Point(lc.get(i1).getCoordinate(),0,""), new Point(lc.get(i1+1).getCoordinate(),0,""), gw);
                     if(grp!=null){
                         km += grp.getDistance()*route.getVehicle().getType().getVehicleCostParams().perDistanceUnit/1000;
                         time += grp.getTime()*route.getVehicle().getType().getVehicleCostParams().perTransportTimeUnit/60/60/1000;

@@ -29,7 +29,7 @@ public class Truck extends Point{
     public String type;
     public Truck(JSONObject obj) throws JSONException, IOException{
         id = obj.getString("id");
-        coord = Reader.readGeoJSONPoint(obj.getString("geometry"));
+        coord = Reader.readGeoJSONPoint(obj.getString("geometry"),1,id);
         priority = Integer.parseInt(obj.getString("priority"));
         pph = Double.parseDouble(obj.getString("price_per_hour"));
         ppk = Double.parseDouble(obj.getString("price_per_kilometer"));

@@ -54,7 +54,7 @@ public class Reader {
         return obj;
     }
     
-    public static Point readGeoJSONPoint(String _url) throws IOException{
+    public static Point readGeoJSONPoint(String _url, int type, String id) throws IOException{
         URL url = new URL(_url);
         URLConnection yc = url.openConnection();
         JSONObject obj;
@@ -68,10 +68,10 @@ public class Reader {
             obj = new JSONObject(ret);
         }
         JSONArray coord = obj.getJSONArray("features").getJSONObject(0).getJSONObject("geometry").getJSONArray("coordinates");
-        return new Point(coord.getDouble(0), coord.getDouble(1));
+        return new Point(coord.getDouble(0), coord.getDouble(1),type,id);
     }
     
-    public static Polygon readGeoJSONPolygon(String _url) throws IOException{
+    public static Polygon readGeoJSONPolygon(String _url, int type, String id) throws IOException{
         URL url = new URL(_url);
         URLConnection yc = url.openConnection();
         JSONObject obj;
@@ -87,7 +87,7 @@ public class Reader {
         Polygon pl = new Polygon();
         JSONArray coord = obj.getJSONArray("features").getJSONObject(0).getJSONObject("geometry").getJSONArray("coordinates").getJSONArray(0);
         for(int i=0;i<coord.length();i++){
-            pl.addPoint(coord.getJSONArray(i).getDouble(0), coord.getJSONArray(i).getDouble(1));
+            pl.addPoint(coord.getJSONArray(i).getDouble(0), coord.getJSONArray(i).getDouble(1),type,id);
         }
         return pl;
     }
