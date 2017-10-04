@@ -270,16 +270,16 @@ public class Main {
             if(!lastList.containsKey(trID))
                 return;
                 DB db = mongo.getDB("orion");	
-                DBCollection col = db.getCollection("entities");
-                DBObject query = BasicDBObjectBuilder.start().add("attrs.rfid.value", rfID).get();
+                DBCollection col = db.getCollection("sgb");
+                DBObject query = BasicDBObjectBuilder.start().add("rfid", rfID).get();
 		DBCursor cursor = col.find(query);
                 JSONArray ar = new JSONArray();
                 Double volume = 0.;
 		while(cursor.hasNext()){
 			System.out.println(cursor.next());
-                        if((Integer)cursor.curr().get("modDate")>DateUtils.truncate(new Date(), Calendar.DATE).getTime()/1000){
+                        if((Integer)cursor.curr().get("time")>DateUtils.truncate(new Date(), Calendar.DATE).getTime()/1000){
                             ar.put(cursor.curr());
-                            volume+=(new JSONObject(cursor.curr().toString())).getJSONObject("attrs").getJSONObject("volume").getDouble("value");
+                            volume+=(Integer)cursor.curr().get("volume");
                         }
 		}                             
                 JSONObject ret = new JSONObject();
