@@ -11,29 +11,64 @@ import com.graphhopper.GHResponse;
 import com.graphhopper.reader.dem.SRTMProvider;
 import com.graphhopper.reader.osm.GraphHopperOSM;
 import com.graphhopper.routing.util.EncodingManager;
+import com.graphhopper.routing.util.FlagEncoder;
+import com.graphhopper.routing.util.HintsMap;
+import com.graphhopper.routing.weighting.AvoidEdgesWeighting;
+import com.graphhopper.routing.weighting.PriorityWeighting;
+import com.graphhopper.routing.weighting.TurnWeighting;
+import com.graphhopper.routing.weighting.Weighting;
+import com.graphhopper.util.EdgeIteratorState;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
 import org.apache.commons.io.FileUtils;
+import org.giggsoff.jspritproj.models.Polygon;
 
 /**
  *
  * @author giggsoff
  */
 public class GraphhopperWorker {
+
+    class MyGraphHopper extends GraphHopper {
+
+        private List<Polygon> forbiddenEdges = new ArrayList<>();
+        private List<String> edgeIds = new ArrayList<>();
+
+        public void addForbiddenEdges(Polygon p, String id) {
+            forbiddenEdges.add(p);
+            edgeIds.add(id);
+        }
+
+        @Override
+        public Weighting createWeighting(HintsMap wMap, FlagEncoder encoder) {
+            return new MyFastestWeighting(encoder, wMap, forbiddenEdges);
+        }
+
+        private void delForbiddenEdges(String id) {
+            int num = edgeIds.indexOf(id);
+            while(num>=0){
+                forbiddenEdges.remove(num);
+                edgeIds.remove(num);
+                num = edgeIds.indexOf(id);
+            }
+        }
+    }
     // create one GraphHopper instance
 
-    GraphHopper hopper = new GraphHopperOSM().forServer();
+    MyGraphHopper hopper = (MyGraphHopper) new MyGraphHopper().forServer();
     long ghCount = 0;
 
     public GraphhopperWorker(String osmFile, String graphFolder) throws MalformedURLException, IOException {
         File fl = new File(osmFile);
-        if(!fl.exists()){
+        if (!fl.exists()) {
             FileUtils.copyURLToFile(new URL("http://download.geofabrik.de/russia/northwestern-fed-district-latest.osm.pbf"), fl);
         }
-
         hopper.setDataReaderFile(osmFile);
         // where to store graphhopper files?
         hopper.setGraphHopperLocation(graphFolder);
@@ -44,6 +79,14 @@ public class GraphhopperWorker {
         // now this can take minutes if it imports or a few seconds for loading
         // of course this is dependent on the area you import
         hopper.importOrLoad();
+    }
+    
+    public void addForbiddenEdges(Polygon p, String id){
+        hopper.addForbiddenEdges(p, id);        
+    }
+    
+    public void delForbiddenEdges(String id){
+        hopper.delForbiddenEdges(id);        
     }
 
     public GHResponse getRoute(double latFrom, double lonFrom, double latTo, double lonTo) {

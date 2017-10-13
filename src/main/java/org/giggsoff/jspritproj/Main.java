@@ -64,6 +64,8 @@ public class Main {
             server.createContext("/get_routes", new RealHandler());
             server.createContext("/get_routes_gen", new GeneticHandler());
             server.createContext("/get_work", new WorkHandler());
+            server.createContext("/add_restricted", new RestrictHandler());
+            server.createContext("/del_restricted", new DelRestrictHandler());
             server.start();
         } catch (IOException | JSONException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
@@ -416,7 +418,7 @@ public class Main {
     static class GeneticHandler implements HttpHandler {
 
         @Override
-        public void handle(HttpExchange httpExchange) {
+        public void handle(HttpExchange httpExchange) {         
             JSONArray regs = new JSONArray();
             Double maxTime = -1.;
             if (httpExchange.getRequestURI().getQuery() != null) {
@@ -432,6 +434,76 @@ public class Main {
                 doWorkGenetic(httpExchange, regs, maxTime);
             } else {
                 doWorkGenetic(httpExchange, new JSONArray(), -1.);
+            }
+        }
+    }
+    static class RestrictHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange httpExchange) throws IOException {            
+            JSONArray area = new JSONArray();
+            String id = "";
+            Double maxTime = -1.;
+            if (httpExchange.getRequestURI().getQuery() != null) {
+                Map<String, String> params = queryToMap(httpExchange.getRequestURI().getQuery());
+                for (String header : params.keySet()) {
+                    if (header.equals("area")) {
+                        area = new JSONArray(java.net.URLDecoder.decode(params.get(header)));
+                    }else
+                    if (header.equals("id")) {
+                        id =java.net.URLDecoder.decode(params.get(header));
+                    }
+                    System.out.println(header + "->" + params.get(header));
+                }
+                if(id.isEmpty()){
+                    id = "0";
+                }
+                if(area.length()>0){
+                    Polygon p = new Polygon();
+                    for(int i=0;i<area.length();i++){
+                        JSONArray ja = area.getJSONArray(i);
+                        p.addPoint(ja.getDouble(0), ja.getDouble(1), 0, "");
+                    }
+                    gw.addForbiddenEdges(p,id);                    
+                }
+                String response = "OK";
+                httpExchange.getResponseHeaders().set("Content-Type", "text/html");
+                httpExchange.sendResponseHeaders(200, response.length());
+                OutputStream os = httpExchange.getResponseBody();
+                os.write(response.getBytes());
+                os.close();
+            } else {
+                String response = "Укажите регионы";
+                httpExchange.getResponseHeaders().set("Content-Type", "text/html");
+                httpExchange.sendResponseHeaders(200, response.length());
+                OutputStream os = httpExchange.getResponseBody();
+                os.write(response.getBytes());
+                os.close();
+            }
+        }
+    }
+    static class DelRestrictHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange httpExchange) throws IOException {         
+            String id = "";
+            Double maxTime = -1.;
+            if (httpExchange.getRequestURI().getQuery() != null) {
+                Map<String, String> params = queryToMap(httpExchange.getRequestURI().getQuery());
+                for (String header : params.keySet()) {
+                    if (header.equals("id")) {
+                        id =java.net.URLDecoder.decode(params.get(header));
+                    }
+                    System.out.println(header + "->" + params.get(header));
+                }
+                if(id.isEmpty()){
+                    id = "0";
+                }
+                gw.delForbiddenEdges(id);  
+                String response = "OK";
+                httpExchange.getResponseHeaders().set("Content-Type", "text/html");
+                httpExchange.sendResponseHeaders(200, response.length());
+                OutputStream os = httpExchange.getResponseBody();
+                os.write(response.getBytes());
+                os.close();
             }
         }
     }
