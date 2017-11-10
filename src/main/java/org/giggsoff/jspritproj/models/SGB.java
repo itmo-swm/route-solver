@@ -23,17 +23,17 @@ import org.json.JSONObject;
 public class SGB extends Point{
     public String id;
     public Point coord;
-    public int state;
+    public Double state;
     public Date cleaning_time;
-    public Integer volume;
-    public Integer max;
+    public Double volume;
+    public Double max;
     public String type;
     public SGB(JSONObject obj) throws JSONException, ParseException, IOException{
         id = obj.getString("id");
         coord = Reader.readGeoJSONPoint(obj.getString("geometry"),2,id);
-        state = Integer.parseInt(obj.getString("state"));
-        volume = Integer.parseInt(obj.getString("volume"));
-        max = Integer.parseInt(obj.getString("max"));
+        state = Double.parseDouble(obj.getString("state"));
+        volume = Double.parseDouble(obj.getString("volume"));
+        max = Double.parseDouble(obj.getString("max"));
         type = obj.getString("type");
         //SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         //cleaning_time = dateFormat.parse(obj.getString("cleaning_time"));

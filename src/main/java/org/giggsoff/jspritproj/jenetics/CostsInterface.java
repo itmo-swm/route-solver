@@ -24,7 +24,7 @@ public interface CostsInterface {
     Map<String,Double> getBinAttrs(Integer obj);
     
     //type : cpv
-    Map<String,Double> getDumpAttrs(Integer obj);
+    Map<String,Double> getDumpReprAttrs(Integer obj);
     
     Truck getTruckAttrs(Integer tr);
     

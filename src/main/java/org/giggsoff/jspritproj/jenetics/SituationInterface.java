@@ -5,7 +5,6 @@
  */
 package org.giggsoff.jspritproj.jenetics;
 
-import java.util.List;
 import org.giggsoff.jspritproj.models.Point;
 
 /**
@@ -15,7 +14,7 @@ import org.giggsoff.jspritproj.models.Point;
 public interface SituationInterface {
     Integer getTrucks();
     Integer getSGBs();
-    Integer getDumps();
+    Integer getDumpReprs();
     Point getPointFirst(Integer tr);
     Point getPoint(Integer obj);
 }

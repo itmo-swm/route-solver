@@ -30,10 +30,10 @@ public class Evaluator {
 
         StateObj.MaxBin = si.getSGBs();
         StateObj.MaxTruck = si.getTrucks();
-        StateObj.MaxDel = si.getDumps();
+        StateObj.MaxDel = si.getDumpReprs();
         
         Factory<Genotype<CustomGene>> g
-                = Genotype.of(CustomChromosome.of(CustomGene.seq((si.getSGBs()+si.getDumps())*2)));
+                = Genotype.of(CustomChromosome.of(CustomGene.seq((si.getSGBs()+si.getDumpReprs())*2)));
 
         Mark ev = new Mark(si,ci);
         Engine<CustomGene, Double> engine = Engine

@@ -36,8 +36,10 @@ import org.giggsoff.jspritproj.jenetics.Evaluator;
 import org.giggsoff.jspritproj.jenetics.Mark;
 import org.giggsoff.jspritproj.jenetics.SituationInterface;
 import org.giggsoff.jspritproj.models.Dump;
+import org.giggsoff.jspritproj.models.DumpRepr;
 import org.giggsoff.jspritproj.models.Point;
 import org.giggsoff.jspritproj.models.Polygon;
+import org.giggsoff.jspritproj.models.Processing;
 import org.giggsoff.jspritproj.models.SGB;
 import org.giggsoff.jspritproj.models.Truck;
 import org.giggsoff.jspritproj.models.Types;
@@ -94,11 +96,11 @@ public class Solver {
         return pMap.get(lat+";"+lon);
     }
     
-    public static Mark solve(List<Truck> trList, List<SGB> sgbList, List<Dump> dumpList, GraphhopperWorker gw){      
+    public static Mark solve(List<Truck> trList, List<SGB> sgbList, List<DumpRepr> dumpList, GraphhopperWorker gw){      
         List<Point> pts = new ArrayList<>();
         pts.addAll(sgbList);
         pts.addAll(dumpList);
-        List<String> types = new ArrayList<>();
+        /*List<String> types = new ArrayList<>();
         for(SGB sgb:sgbList){
             if(!types.contains(sgb.type)){
                 types.add(sgb.type);
@@ -109,7 +111,7 @@ public class Solver {
             for(String type:types){
                 dump.prices.put(type, 100.);
             }
-        }
+        }*/
         curMax = Double.MIN_VALUE;
         return Evaluator.Evaluate(new SituationInterface(){
             @Override
@@ -123,7 +125,7 @@ public class Solver {
             }
 
             @Override
-            public Integer getDumps() {
+            public Integer getDumpReprs() {
                 return dumpList.size();
             }
 
@@ -174,7 +176,7 @@ public class Solver {
             }
 
             @Override
-            public Map<String, Double> getDumpAttrs(Integer obj) {
+            public Map<String, Double> getDumpReprAttrs(Integer obj) {
                 return dumpList.get(obj-sgbList.size()).prices;
             }
 
@@ -188,7 +190,7 @@ public class Solver {
         });
     }
 
-    public static VehicleRoutingProblemSolution solve(List<Truck> trList, List<SGB> sgbList, List<Dump> dumpList, GraphhopperWorker gw, boolean showPlot) {
+    public static VehicleRoutingProblemSolution solve(List<Truck> trList, List<SGB> sgbList, List<DumpRepr> dumpList, GraphhopperWorker gw, boolean showPlot) {
 
         System.out.println("INITIAL COUNT: " + gw.ghCount);
         /*
@@ -219,11 +221,11 @@ public class Solver {
          */
         int i = 0;
         for (SGB sgb : sgbList) {
-            Pickup service = Pickup.Builder.newInstance(Integer.toString(++i)).setServiceTime(100).addSizeDimension(types.get(sgb.type), sgb.volume).setLocation(Location.newInstance(sgb.coord.x, sgb.coord.y)).build();
+            Pickup service = Pickup.Builder.newInstance(Integer.toString(++i)).setServiceTime(100).addSizeDimension(types.get(sgb.type), (int)sgb.volume.doubleValue()).setLocation(Location.newInstance(sgb.coord.x, sgb.coord.y)).build();
             vrpBuilder.addJob(service);
         }
         
-        for (Dump dump : dumpList) {
+        for (DumpRepr dump : dumpList) {
             Service.Builder<Delivery> service = Delivery.Builder.newInstance(Integer.toString(++i)).setServiceTime(100).setLocation(Location.newInstance(dump.coord.x, dump.coord.y));
             for(int j=0;j<types.all().size();j++){
                 service.addSizeDimension(j, 900);

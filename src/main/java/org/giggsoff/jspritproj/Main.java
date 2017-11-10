@@ -1,6 +1,5 @@
 package org.giggsoff.jspritproj;
 
-import com.graphhopper.GHResponse;
 import com.graphhopper.PathWrapper;
 import org.giggsoff.jspritproj.utils.Reader;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
@@ -30,13 +29,12 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.time.DateUtils;
-import org.giggsoff.jspritproj.jenetics.CostsInterface;
-import org.giggsoff.jspritproj.jenetics.Evaluator;
 import org.giggsoff.jspritproj.jenetics.Mark;
-import org.giggsoff.jspritproj.jenetics.SituationInterface;
 import org.giggsoff.jspritproj.models.Dump;
+import org.giggsoff.jspritproj.models.DumpRepr;
 import org.giggsoff.jspritproj.models.Point;
 import org.giggsoff.jspritproj.models.Polygon;
+import org.giggsoff.jspritproj.models.Processing;
 import org.giggsoff.jspritproj.models.Region;
 import org.giggsoff.jspritproj.models.SGB;
 import org.giggsoff.jspritproj.models.Truck;
@@ -51,11 +49,12 @@ public class Main {
 
     public static List<Truck> trList = new ArrayList<>();
     public static List<SGB> sgbList = new ArrayList<>();
-    public static List<Dump> dumpList = new ArrayList<>();
+    public static List<DumpRepr> dumpList = new ArrayList<>();
     public static List<Region> regionList = new ArrayList<>();
     public static GraphhopperWorker gw = null;
     public static MongoClient mongo = null;
     public static HashMap<String, List<String>> lastList = new HashMap<>();
+    public static HashMap<String, List<List<String>>> planList = new HashMap<>();
 
     public static void main(String[] args) {
         try {
@@ -123,6 +122,8 @@ public class Main {
             List<Dump> dlist = Dump.fromArray(Reader.readArray("get_waste_dumps?region=" + regionList.get(0).id));
             dumpList = new ArrayList<>();
             dumpList.addAll(dlist);
+            List<Processing> plist = Processing.fromArray(Reader.readArray("get_waste_processing_company?region=" + regionList.get(0).id));
+            dumpList.addAll(plist);
             Long t = 0l;
             List<Polygon> ar = new ArrayList<>();
             int trCount = trList.size();
@@ -200,6 +201,8 @@ public class Main {
                 List<Dump> dlist = Dump.fromArray(Reader.readArray("get_waste_dumps?region=" + regionList.get(0).id));
                 dumpList = new ArrayList<>();
                 dumpList.addAll(dlist);
+                List<Processing> plist = Processing.fromArray(Reader.readArray("get_waste_processing_company?region=" + regionList.get(0).id));
+                dumpList.addAll(plist);
                 VehicleRoutingProblemSolution solve = Solver.solve(trList, sgbList, dumpList, gw, false);
                 JSONArray ar = new JSONArray();
                 for (VehicleRoute vr : solve.getRoutes()) {
@@ -345,13 +348,16 @@ public class Main {
             sgbList.addAll(list);
             List<Dump> dlist = Dump.fromArray(Reader.readArray("get_waste_dumps?region=" + regionList.get(0).id));
             dumpList = new ArrayList<>();
-            dumpList.addAll(dlist);
+            dumpList.addAll(dlist);            
+            List<Processing> plist = Processing.fromArray(Reader.readArray("get_waste_processing_company?region=" + regionList.get(0).id));
+            dumpList.addAll(plist);
             Long t = 0l;
             Integer lproc = Integer.MAX_VALUE;
             List<Polygon> ar = new ArrayList<>();
             int trCount = trList.size();
             do {
                 lastList.clear();
+                planList.clear();
                 Mark solve = Solver.solve(trList.subList(0, trCount), sgbList, dumpList, gw);
                 if(ar.size()> 0 && solve.processed<lproc){
                     break;
@@ -360,7 +366,9 @@ public class Main {
                 }
                 ar = new ArrayList<>();
                 List<Long> maxT = new ArrayList<>();
+                List<List<String>> plansublist = new ArrayList<>();
                 for (Polygon vr : solve.getRoutes()) {
+                    List<String> plansubsublist = new ArrayList<>();
                     maxT.add(0l);
                     Polygon tcoords = new Polygon();
                     List<String> ls = new ArrayList<>();
@@ -368,7 +376,7 @@ public class Main {
                     for (int i = 0; i < vr.size() - 1; i++) {
                         
                         if(vr.get(i).type==2){
-                            ls.add(vr.get(i).id);
+                            ls.add(vr.get(i).id);                            
                         }else if(vr.get(i).type==1){
                             trID = vr.get(i).id;
                         }
@@ -381,6 +389,9 @@ public class Main {
                         if (grp != null) {
                             for (int j = 0; j < grp.getPoints().size(); j++) {
                                 tcoords.addPoint(new Point(grp.getPoints().getLon(j), grp.getPoints().getLat(j),0,""));
+                            }       
+                            if(vr.get(i).type==2){
+                                
                             }
                         }
                     }

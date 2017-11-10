@@ -20,7 +20,7 @@ import org.json.JSONObject;
  *
  * @author giggsoff
  */
-public class Dump extends Point{
+public class Dump extends DumpRepr{
     public String id;
     public Point coord;
     public int state;
@@ -29,6 +29,18 @@ public class Dump extends Point{
     public Dump(JSONObject obj) throws JSONException, ParseException, IOException{
         id = obj.getString("id");
         coord = Reader.readGeoJSONPoint(obj.getString("geometry"),3,id);
+        if(obj.has("prices")){
+            JSONObject jo = obj.getJSONObject("prices");
+            if(jo.has("glass")){
+                prices.put("glass", Double.parseDouble(jo.getString("glass")));
+            }
+            if(jo.has("organic")){
+                prices.put("organic", Double.parseDouble(jo.getString("organic")));
+            }
+            if(jo.has("dangerous")){
+                prices.put("dangerous", Double.parseDouble(jo.getString("dangerous")));
+            }
+        }
         //price = obj.getDouble("price_for_waste_disposal");
         //state = Integer.parseInt(obj.getString("state"));
     }
