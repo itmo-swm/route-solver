@@ -84,7 +84,7 @@ public class Mark{
                 }
             }
             if (vol > 0) {
-                sum += cInt.getMaxRouteTruckCost()*2;
+                sum += Double.MAX_VALUE*0.01;
             }
         }
 

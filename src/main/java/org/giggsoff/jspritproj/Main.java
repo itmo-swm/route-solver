@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -55,6 +56,7 @@ public class Main {
     public static MongoClient mongo = null;
     public static HashMap<String, List<String>> lastList = new HashMap<>();
     public static HashMap<String, List<List<String>>> planList = new HashMap<>();
+    public static Date planStart = new Date();
 
     public static void main(String[] args) {
         try {
@@ -65,6 +67,7 @@ public class Main {
             server.createContext("/get_work", new WorkHandler());
             server.createContext("/add_restricted", new RestrictHandler());
             server.createContext("/del_restricted", new DelRestrictHandler());
+            server.createContext("/get_plan", new PlanHandler());
             server.start();
         } catch (IOException | JSONException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
@@ -73,8 +76,8 @@ public class Main {
             mongo = new MongoClient("77.234.220.206", 27016);
             List<String> dbs = mongo.getDatabaseNames();
             System.out.println(dbs);
-        } catch (Exception ex){
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);            
+        } catch (Exception ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
         /*
          * some preparation - create output folder
@@ -137,11 +140,11 @@ public class Main {
                 for (VehicleRoute vr : solve.getRoutes()) {
                     maxT.add(0l);
                     List<Point> vehroute = new ArrayList<>();
-                    vehroute.add(new Point(vr.getStart().getLocation().getCoordinate(),0,""));
+                    vehroute.add(new Point(vr.getStart().getLocation().getCoordinate(), 0, ""));
                     for (TourActivity ta : vr.getActivities()) {
-                        vehroute.add(new Point(ta.getLocation().getCoordinate(),0,""));
+                        vehroute.add(new Point(ta.getLocation().getCoordinate(), 0, ""));
                     }
-                    vehroute.add(new Point(vr.getEnd().getLocation().getCoordinate(),0,""));
+                    vehroute.add(new Point(vr.getEnd().getLocation().getCoordinate(), 0, ""));
                     Polygon tcoords = new Polygon();
                     for (int i = 0; i < vehroute.size() - 1; i++) {
                         if (vehroute.get(i).toString().equals(vehroute.get(i + 1).toString())) {
@@ -151,12 +154,12 @@ public class Main {
                         maxT.set(maxT.size() - 1, maxT.get(maxT.size() - 1) + grp.getTime());
                         if (grp != null) {
                             for (int j = 0; j < grp.getPoints().size(); j++) {
-                                tcoords.addPoint(new Point(grp.getPoints().getLon(j), grp.getPoints().getLat(j),0,""));
+                                tcoords.addPoint(new Point(grp.getPoints().getLon(j), grp.getPoints().getLat(j), 0, ""));
                             }
                         }
                     }
                     if (tcoords.size() == 0) {
-                        tcoords.addPoint(new Point(vehroute.get(0).x, vehroute.get(0).y,0,""));
+                        tcoords.addPoint(new Point(vehroute.get(0).x, vehroute.get(0).y, 0, ""));
                     }
                     ar.add(tcoords);
                 }
@@ -207,11 +210,11 @@ public class Main {
                 JSONArray ar = new JSONArray();
                 for (VehicleRoute vr : solve.getRoutes()) {
                     List<Point> vehroute = new ArrayList<>();
-                    vehroute.add(new Point(vr.getStart().getLocation().getCoordinate(),0,""));
+                    vehroute.add(new Point(vr.getStart().getLocation().getCoordinate(), 0, ""));
                     for (TourActivity ta : vr.getActivities()) {
-                        vehroute.add(new Point(ta.getLocation().getCoordinate(),0,""));
+                        vehroute.add(new Point(ta.getLocation().getCoordinate(), 0, ""));
                     }
-                    vehroute.add(new Point(vr.getEnd().getLocation().getCoordinate(),0,""));
+                    vehroute.add(new Point(vr.getEnd().getLocation().getCoordinate(), 0, ""));
                     JSONArray tcoords = new JSONArray();
                     for (int i = 0; i < vehroute.size() - 1; i++) {
                         if (vehroute.get(i).toString().equals(vehroute.get(i + 1).toString())) {
@@ -258,39 +261,40 @@ public class Main {
 
         @Override
         public void handle(HttpExchange httpExchange) throws IOException {
-            if(mongo != null){
-            String trID = null;
-            String rfID = null;
-            if (httpExchange.getRequestURI().getQuery() != null) {
-                Map<String, String> params = queryToMap(httpExchange.getRequestURI().getQuery());
-                for (String header : params.keySet()) {
-                    if (header.equals("truck")) {
-                        trID = java.net.URLDecoder.decode(params.get(header));
-                    } else if (header.equals("drivers_RFID")) {
-                        rfID = java.net.URLDecoder.decode(params.get(header));
+            if (mongo != null) {
+                String trID = null;
+                String rfID = null;
+                if (httpExchange.getRequestURI().getQuery() != null) {
+                    Map<String, String> params = queryToMap(httpExchange.getRequestURI().getQuery());
+                    for (String header : params.keySet()) {
+                        if (header.equals("truck")) {
+                            trID = java.net.URLDecoder.decode(params.get(header));
+                        } else if (header.equals("drivers_RFID")) {
+                            rfID = java.net.URLDecoder.decode(params.get(header));
+                        }
+                        System.out.println(header + "->" + params.get(header));
                     }
-                    System.out.println(header + "->" + params.get(header));
                 }
-            }
-            if(!lastList.containsKey(trID))
-                return;
-                DB db = mongo.getDB("orion");	
+                if (!lastList.containsKey(trID)) {
+                    return;
+                }
+                DB db = mongo.getDB("orion");
                 DBCollection col = db.getCollection("sgb");
                 DBObject query = BasicDBObjectBuilder.start().add("rfid", rfID).get();
-		DBCursor cursor = col.find(query);
+                DBCursor cursor = col.find(query);
                 JSONArray ar = new JSONArray();
                 Double volume = 0.;
-		while(cursor.hasNext()){
-			System.out.println(cursor.next());
-                        if((Integer)cursor.curr().get("time")>DateUtils.truncate(new Date(), Calendar.DATE).getTime()/1000){
-                            ar.put(cursor.curr());
-                            volume+=(Integer)cursor.curr().get("volume");
-                        }
-		}                             
+                while (cursor.hasNext()) {
+                    System.out.println(cursor.next());
+                    if ((Integer) cursor.curr().get("time") > DateUtils.truncate(new Date(), Calendar.DATE).getTime() / 1000) {
+                        ar.put(cursor.curr());
+                        volume += (Integer) cursor.curr().get("volume");
+                    }
+                }
                 JSONObject ret = new JSONObject();
                 ret.put("numBins", lastList.get(trID).size());
                 ret.put("volume", volume);
-                ret.put("percent", 100.*ar.length()/lastList.get(trID).size());
+                ret.put("percent", 100. * ar.length() / lastList.get(trID).size());
                 String response = ret.toString();
                 httpExchange.getResponseHeaders().set("Content-Type", "application/json");
                 httpExchange.sendResponseHeaders(200, response.length());
@@ -298,6 +302,40 @@ public class Main {
                 os.write(response.getBytes());
                 os.close();
             }
+        }
+    }
+
+    static class PlanHandler implements HttpHandler {
+
+        @Override
+        public void handle(HttpExchange httpExchange) throws IOException {
+            String trID = null;
+            if (httpExchange.getRequestURI().getQuery() != null) {
+                Map<String, String> params = queryToMap(httpExchange.getRequestURI().getQuery());
+                for (String header : params.keySet()) {
+                    if (header.equals("truck")) {
+                        trID = java.net.URLDecoder.decode(params.get(header));
+                    }
+                    System.out.println(header + "->" + params.get(header));
+                }
+            }
+            if (!planList.containsKey(trID)) {
+                return;
+            }
+            JSONArray jar = new JSONArray();
+            for(int i=0;i<planList.get(trID).size();i++){
+                jar.put(new JSONArray().put(planList.get(trID).get(i).get(0)).put(planList.get(trID).get(i).get(1)));
+            }
+            JSONObject ret = new JSONObject();
+            ret.put("truck", trID);
+            ret.put("from", new SimpleDateFormat("dd.MM.yyyy HH:mm:ss").format(planStart));
+            ret.put("plan", jar);
+            String response = ret.toString();
+            httpExchange.getResponseHeaders().set("Content-Type", "application/json");
+            httpExchange.sendResponseHeaders(200, response.length());
+            OutputStream os = httpExchange.getResponseBody();
+            os.write(response.getBytes());
+            os.close();
         }
     }
 
@@ -323,7 +361,7 @@ public class Main {
             }
         }
     }
-    
+
     static void doWorkGenetic(HttpExchange he, JSONArray regs, Double maxTime) {
         try {
             List<Region> rlist = Region.fromArray(Reader.readArray("get_regions"));
@@ -348,7 +386,7 @@ public class Main {
             sgbList.addAll(list);
             List<Dump> dlist = Dump.fromArray(Reader.readArray("get_waste_dumps?region=" + regionList.get(0).id));
             dumpList = new ArrayList<>();
-            dumpList.addAll(dlist);            
+            dumpList.addAll(dlist);
             List<Processing> plist = Processing.fromArray(Reader.readArray("get_waste_processing_company?region=" + regionList.get(0).id));
             dumpList.addAll(plist);
             Long t = 0l;
@@ -359,51 +397,57 @@ public class Main {
                 lastList.clear();
                 planList.clear();
                 Mark solve = Solver.solve(trList.subList(0, trCount), sgbList, dumpList, gw);
-                if(ar.size()> 0 && solve.processed<lproc){
+                if (ar.size() > 0 && solve.processed < lproc) {
                     break;
-                }else{
+                } else {
                     lproc = solve.processed;
                 }
                 ar = new ArrayList<>();
                 List<Long> maxT = new ArrayList<>();
+                Date curdate = new Date();
+                planStart = new Date();
                 List<List<String>> plansublist = new ArrayList<>();
                 for (Polygon vr : solve.getRoutes()) {
-                    List<String> plansubsublist = new ArrayList<>();
                     maxT.add(0l);
                     Polygon tcoords = new Polygon();
                     List<String> ls = new ArrayList<>();
                     String trID = null;
                     for (int i = 0; i < vr.size() - 1; i++) {
-                        
-                        if(vr.get(i).type==2){
-                            ls.add(vr.get(i).id);                            
-                        }else if(vr.get(i).type==1){
+
+                        if (vr.get(i).type == 2) {
+                            ls.add(vr.get(i).id);
+                        } else if (vr.get(i).type == 1) {
                             trID = vr.get(i).id;
                         }
-                        
+
                         if (vr.get(i).toString().equals(vr.get(i + 1).toString())) {
                             continue;
                         }
                         PathWrapper grp = Solver.getRoute(vr.get(i), vr.get(i + 1), gw);
-                        maxT.set(maxT.size() - 1, maxT.get(maxT.size() - 1) + grp.getTime());
                         if (grp != null) {
+                            maxT.set(maxT.size() - 1, maxT.get(maxT.size() - 1) + grp.getTime());
+                            curdate.setTime(curdate.getTime() + grp.getTime()+10*60*1000);
                             for (int j = 0; j < grp.getPoints().size(); j++) {
-                                tcoords.addPoint(new Point(grp.getPoints().getLon(j), grp.getPoints().getLat(j),0,""));
-                            }       
-                            if(vr.get(i).type==2){
-                                
+                                tcoords.addPoint(new Point(grp.getPoints().getLon(j), grp.getPoints().getLat(j), 0, ""));
+                            }
+                            if (vr.get(i).type == 2 || vr.get(i).type == 3 || vr.get(i).type == 4) {
+                                List<String> plansubsublist = new ArrayList<>();
+                                plansubsublist.add(vr.get(i).getPoint().id.substring(vr.get(i).getPoint().id.lastIndexOf("/") + 1));
+                                plansubsublist.add(new SimpleDateFormat("dd.MM.yyyy HH:mm:ss").format(curdate));
+                                plansublist.add(plansubsublist);
                             }
                         }
                     }
-                    if(trID!=null){
+                    if (trID != null) {
                         lastList.put(trID, ls);
+                        planList.put(trID, plansublist);
                     }
                     if (tcoords.size() == 0) {
-                        tcoords.addPoint(new Point(vr.get(0).x, vr.get(0).y,0,""));
+                        tcoords.addPoint(new Point(vr.get(0).x, vr.get(0).y, 0, ""));
                     }
                     ar.add(tcoords);
-                }                
-                
+                }
+
                 System.out.println(lastList);
                 for (Long l : maxT) {
                     if (l > t) {
@@ -412,12 +456,12 @@ public class Main {
                 }
                 trCount -= 1;
             } while (t < maxTime * 1000 && trCount > 0);
-                String response = GeoJson.getGeoJSON(ar).toString();
-                he.getResponseHeaders().set("Content-Type", "application/json");
-                he.sendResponseHeaders(200, response.length());
-                OutputStream os = he.getResponseBody();
-                os.write(response.getBytes());
-                os.close();
+            String response = GeoJson.getGeoJSON(ar).toString();
+            he.getResponseHeaders().set("Content-Type", "application/json");
+            he.sendResponseHeaders(200, response.length());
+            OutputStream os = he.getResponseBody();
+            os.write(response.getBytes());
+            os.close();
         } catch (JSONException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ParseException ex) {
@@ -426,10 +470,11 @@ public class Main {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+
     static class GeneticHandler implements HttpHandler {
 
         @Override
-        public void handle(HttpExchange httpExchange) {         
+        public void handle(HttpExchange httpExchange) {
             JSONArray regs = new JSONArray();
             Double maxTime = -1.;
             if (httpExchange.getRequestURI().getQuery() != null) {
@@ -448,9 +493,11 @@ public class Main {
             }
         }
     }
+
     static class RestrictHandler implements HttpHandler {
+
         @Override
-        public void handle(HttpExchange httpExchange) throws IOException {            
+        public void handle(HttpExchange httpExchange) throws IOException {
             JSONArray area = new JSONArray();
             String id = "";
             Double maxTime = -1.;
@@ -459,22 +506,21 @@ public class Main {
                 for (String header : params.keySet()) {
                     if (header.equals("area")) {
                         area = new JSONArray(java.net.URLDecoder.decode(params.get(header)));
-                    }else
-                    if (header.equals("id")) {
-                        id =java.net.URLDecoder.decode(params.get(header));
+                    } else if (header.equals("id")) {
+                        id = java.net.URLDecoder.decode(params.get(header));
                     }
                     System.out.println(header + "->" + params.get(header));
                 }
-                if(id.isEmpty()){
+                if (id.isEmpty()) {
                     id = "0";
                 }
-                if(area.length()>0){
+                if (area.length() > 0) {
                     Polygon p = new Polygon();
-                    for(int i=0;i<area.length();i++){
+                    for (int i = 0; i < area.length(); i++) {
                         JSONArray ja = area.getJSONArray(i);
                         p.addPoint(ja.getDouble(0), ja.getDouble(1), 0, "");
                     }
-                    gw.addForbiddenEdges(p,id);                    
+                    gw.addForbiddenEdges(p, id);
                 }
                 String response = "OK";
                 httpExchange.getResponseHeaders().set("Content-Type", "text/html");
@@ -492,23 +538,25 @@ public class Main {
             }
         }
     }
+
     static class DelRestrictHandler implements HttpHandler {
+
         @Override
-        public void handle(HttpExchange httpExchange) throws IOException {         
+        public void handle(HttpExchange httpExchange) throws IOException {
             String id = "";
             Double maxTime = -1.;
             if (httpExchange.getRequestURI().getQuery() != null) {
                 Map<String, String> params = queryToMap(httpExchange.getRequestURI().getQuery());
                 for (String header : params.keySet()) {
                     if (header.equals("id")) {
-                        id =java.net.URLDecoder.decode(params.get(header));
+                        id = java.net.URLDecoder.decode(params.get(header));
                     }
                     System.out.println(header + "->" + params.get(header));
                 }
-                if(id.isEmpty()){
+                if (id.isEmpty()) {
                     id = "0";
                 }
-                gw.delForbiddenEdges(id);  
+                gw.delForbiddenEdges(id);
                 String response = "OK";
                 httpExchange.getResponseHeaders().set("Content-Type", "text/html");
                 httpExchange.sendResponseHeaders(200, response.length());

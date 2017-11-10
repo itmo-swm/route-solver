@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.giggsoff.jspritproj.utils.Reader;
@@ -21,12 +22,8 @@ import org.json.JSONObject;
  * @author giggsoff
  */
 public class Dump extends DumpRepr{
-    public String id;
-    public Point coord;
-    public int state;
-    public Double price;
-    public Map<String,Double> prices;
     public Dump(JSONObject obj) throws JSONException, ParseException, IOException{
+        prices = new HashMap<>();
         id = obj.getString("id");
         coord = Reader.readGeoJSONPoint(obj.getString("geometry"),3,id);
         if(obj.has("prices")){

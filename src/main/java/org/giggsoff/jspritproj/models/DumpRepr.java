@@ -5,6 +5,7 @@
  */
 package org.giggsoff.jspritproj.models;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -16,5 +17,8 @@ public class DumpRepr extends Point{
     public Point coord;
     public int state;
     public Double price;
-    public Map<String,Double> prices;    
+    public HashMap<String,Double> prices;  
+    public HashMap<String,Double> getPrices(){
+        return prices;
+    }  
 }

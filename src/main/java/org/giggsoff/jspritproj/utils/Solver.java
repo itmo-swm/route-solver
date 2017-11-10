@@ -176,8 +176,8 @@ public class Solver {
             }
 
             @Override
-            public Map<String, Double> getDumpReprAttrs(Integer obj) {
-                return dumpList.get(obj-sgbList.size()).prices;
+            public HashMap<String, Double> getDumpReprAttrs(Integer obj) {
+                return dumpList.get(obj-sgbList.size()).getPrices();
             }
 
             @Override
