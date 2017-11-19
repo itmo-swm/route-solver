@@ -286,7 +286,7 @@ public class Main {
                 Double volume = 0.;
                 while (cursor.hasNext()) {
                     System.out.println(cursor.next());
-                    if ((Integer) cursor.curr().get("time") > DateUtils.truncate(new Date(), Calendar.DATE).getTime() / 1000) {
+                    if (cursor.curr().containsKey("time")&&(Integer) cursor.curr().get("time") > DateUtils.truncate(new Date(), Calendar.DATE).getTime() / 1000) {
                         ar.put(cursor.curr());
                         volume += (Integer) cursor.curr().get("volume");
                     }
@@ -406,8 +406,8 @@ public class Main {
                 List<Long> maxT = new ArrayList<>();
                 Date curdate = new Date();
                 planStart = new Date();
-                List<List<String>> plansublist = new ArrayList<>();
                 for (Polygon vr : solve.getRoutes()) {
+                    List<List<String>> plansublist = new ArrayList<>();
                     maxT.add(0l);
                     Polygon tcoords = new Polygon();
                     List<String> ls = new ArrayList<>();
