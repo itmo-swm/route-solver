@@ -85,6 +85,7 @@ public class Mark{
             }
             if (vol > 0) {
                 sum += Double.MAX_VALUE/10000;
+                return Double.MAX_VALUE;
             }
         }
 
