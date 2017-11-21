@@ -77,9 +77,13 @@ public class Mark{
                         sum += cInt.getMaxRouteTruckCost() * 2;                        
                     }
                 } else if (routes.get(truck).get(i) >= StateObj.MaxBin) {
-                    if(cInt.getDumpReprAttrs(routes.get(truck).get(i)).containsKey(ta.type)){
-                        sum += vol*cInt.getDumpReprAttrs(routes.get(truck).get(i)).get(ta.type);
-                        vol = 0.;
+                    if(vol>0){
+                        if(cInt.getDumpReprAttrs(routes.get(truck).get(i)).containsKey(ta.type)){
+                            sum += vol*cInt.getDumpReprAttrs(routes.get(truck).get(i)).get(ta.type);
+                            vol = 0.;
+                        }
+                    }else{
+                        sum += 1E200;
                     }
                 }
             }
