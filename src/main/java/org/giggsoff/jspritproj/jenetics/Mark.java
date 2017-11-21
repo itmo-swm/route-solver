@@ -90,7 +90,7 @@ public class Mark{
                 }
             }
             if (vol > 0) {
-                sum += cInt.getMaxRouteTruckCost() * 1000;
+                sum += cInt.getMaxRouteTruckCost() * 1000000;
             }
         }
 
