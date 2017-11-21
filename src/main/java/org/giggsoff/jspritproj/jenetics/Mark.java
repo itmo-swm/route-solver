@@ -91,7 +91,7 @@ public class Mark{
 
         for (int i = 0; i < StateObj.MaxBin; i++) {
             if (lst.get(i) == false) {
-                sum += cInt.getMaxRouteTruckCost()*10;
+                sum += 1E200;
             }
         }
 
