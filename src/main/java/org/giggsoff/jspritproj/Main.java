@@ -404,9 +404,9 @@ public class Main {
                 }
                 ar = new ArrayList<>();
                 List<Long> maxT = new ArrayList<>();
-                Date curdate = new Date();
                 planStart = new Date();
                 for (Polygon vr : solve.getRoutes()) {
+                    Date curdate = new Date();
                     List<List<String>> plansublist = new ArrayList<>();
                     maxT.add(0l);
                     Polygon tcoords = new Polygon();
