@@ -292,7 +292,7 @@ public class Main {
                     }
                 }
                 JSONObject ret = new JSONObject();
-                ret.put("numBins", lastList.get(trID).size());
+                ret.put("numBins", ar.length());
                 ret.put("volume", volume);
                 ret.put("percent", 100. * ar.length() / lastList.get(trID).size());
                 String response = ret.toString();
