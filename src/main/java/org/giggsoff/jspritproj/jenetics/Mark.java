@@ -83,19 +83,18 @@ public class Mark{
                             vol = 0.;
                         }
                     }else{
-                        sum += 1E200;
+                        sum += cInt.getMaxRouteTruckCost() * 5;
                     }
                 }
             }
             if (vol > 0) {
-                sum += Double.MAX_VALUE/1000;
-                return 1E200;
+                sum += cInt.getMaxRouteTruckCost() * 1000;
             }
         }
 
         for (int i = 0; i < StateObj.MaxBin; i++) {
             if (lst.get(i) == false) {
-                sum += 1E200;
+                sum += cInt.getMaxRouteTruckCost() * 10;
             }
         }
 
