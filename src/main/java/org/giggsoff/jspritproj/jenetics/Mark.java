@@ -84,7 +84,7 @@ public class Mark{
                 }
             }
             if (vol > 0) {
-                sum += Double.MAX_VALUE*0.1;
+                sum += Double.MAX_VALUE*0.05;
             }
         }
 
