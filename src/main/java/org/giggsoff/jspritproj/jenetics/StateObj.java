@@ -21,10 +21,13 @@ public class StateObj {
     public static StateObj Rand(){        
         final Random random = RandomRegistry.getRandom();
         StateObj so = new StateObj();
-        if(random.nextInt(10)==1){
+        int nv = random.nextInt(10);
+        if(nv==1){
             so.obj=-1;
-        }else{
+        }else if(nv<5){
             so.obj = random.nextInt(StateObj.MaxBin+StateObj.MaxDel);
+        }else{
+            so.obj = random.nextInt(StateObj.MaxBin);            
         }
         so.truck = random.nextInt(StateObj.MaxTruck);
         return so;
