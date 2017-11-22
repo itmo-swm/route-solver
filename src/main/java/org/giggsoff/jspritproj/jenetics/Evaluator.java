@@ -5,55 +5,37 @@
  */
 package org.giggsoff.jspritproj.jenetics;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import org.giggsoff.jspritproj.models.Truck;
-import org.jenetics.Genotype;
-import org.jenetics.Mutator;
-import org.jenetics.Optimize;
-import org.jenetics.RouletteWheelSelector;
-import org.jenetics.MultiPointCrossover;
-import org.jenetics.TournamentSelector;
-import org.jenetics.engine.Engine;
-import org.jenetics.engine.EvolutionResult;
-import org.jenetics.util.Factory;
+import java.util.function.Predicate;
+import org.giggsoff.jspritproj.Main;
+import org.giggsoff.jspritproj.simplega.Algorithm;
+import org.giggsoff.jspritproj.simplega.Individual;
+import org.giggsoff.jspritproj.simplega.Population;
 
 /**
  *
  * @author giggsoff
  */
 public class Evaluator {  
-
-    public static Mark Evaluate(SituationInterface si, CostsInterface ci) {
-
+    
+    public static Algorithm EvaluateMy(SituationInterface si, CostsInterface ci) {
         StateObj.MaxBin = si.getSGBs();
         StateObj.MaxTruck = si.getTrucks();
         StateObj.MaxDel = si.getDumpReprs();
+        Main.minCost = Double.MAX_VALUE;
+        Algorithm alg = new Algorithm(si,ci);
+        Individual.setDefaultGeneLength((si.getSGBs()+si.getDumpReprs())*2);
+        Population myPop = new Population(si.getTrucks()*5, true);
         
-        Factory<Genotype<CustomGene>> g
-                = Genotype.of(CustomChromosome.of(CustomGene.seq((si.getSGBs()+si.getDumpReprs())*2)));
-
-        Mark ev = new Mark(si,ci);
-        Engine<CustomGene, Double> engine = Engine
-                .builder(ev::eval, g)
-                .optimize(Optimize.MINIMUM)
-                .populationSize(50)
-                .survivorsSelector(new TournamentSelector<>(5))
-                .offspringSelector(new RouletteWheelSelector<>())
-                .alterers(new Mutator<>(0.15), new MultiPointCrossover<>(0.3,2))
-                .build();
-
-        Genotype<CustomGene> result = engine.stream().limit(1000)
-                .collect(EvolutionResult.toBestGenotype());
-
-        System.out.println(ev.eval(result));
-        System.out.println(result.getChromosome().isValid());
-        result.getChromosome().stream().forEach(i -> {
-            System.out.print(i.getAllele() + " ");
-        });
-        System.out.println();
-        return ev;
+        // Evolve our population until we reach an optimum solution
+        int generationCount = 0;
+        while (generationCount < (si.getSGBs()+si.getDumpReprs()+si.getTrucks())*10) {
+            generationCount++;
+            System.out.println("Generation: " + generationCount + " Fittest: " + myPop.getFittest().getFitness());
+            myPop = alg.evolvePopulation(myPop);
+        }
+        for(int i = 0;i<myPop.getFittest().size();i++){
+            System.out.print(myPop.getFittest().getGene(i) + " ");
+        };     
+        return alg;
     }
 }

@@ -33,7 +33,6 @@ import java.util.Map;
 import org.giggsoff.jspritproj.alg.VehicleRoutingAlgorithmBuilder;
 import org.giggsoff.jspritproj.jenetics.CostsInterface;
 import org.giggsoff.jspritproj.jenetics.Evaluator;
-import org.giggsoff.jspritproj.jenetics.Mark;
 import org.giggsoff.jspritproj.jenetics.SituationInterface;
 import org.giggsoff.jspritproj.models.Dump;
 import org.giggsoff.jspritproj.models.DumpRepr;
@@ -43,6 +42,7 @@ import org.giggsoff.jspritproj.models.Processing;
 import org.giggsoff.jspritproj.models.SGB;
 import org.giggsoff.jspritproj.models.Truck;
 import org.giggsoff.jspritproj.models.Types;
+import org.giggsoff.jspritproj.simplega.Algorithm;
 
 /**
  *
@@ -56,7 +56,11 @@ public class Solver {
     
     public static Types types = new Types();
     
-    public static Double curMax = Double.MIN_VALUE;
+    public static Double maxCost = Double.MIN_VALUE;
+    
+    public static Double minCost = Double.MAX_VALUE;
+    
+    public static Double maxWastePrice = 0.;
     
     public static PathWrapper getRoute(Point p1, Point p2, GraphhopperWorker gw){
         
@@ -96,7 +100,7 @@ public class Solver {
         return pMap.get(lat+";"+lon);
     }
     
-    public static Mark solve(List<Truck> trList, List<SGB> sgbList, List<DumpRepr> dumpList, GraphhopperWorker gw){      
+    public static Algorithm solve(List<Truck> trList, List<SGB> sgbList, List<DumpRepr> dumpList, GraphhopperWorker gw){      
         List<Point> pts = new ArrayList<>();
         pts.addAll(sgbList);
         pts.addAll(dumpList);
@@ -112,8 +116,74 @@ public class Solver {
                 dump.prices.put(type, 100.);
             }
         }*/
-        curMax = Double.MIN_VALUE;
-        return Evaluator.Evaluate(new SituationInterface(){
+        Double maxppk = 0.;
+        Double minppk = Double.MAX_VALUE;
+        Double maxpph = 0.;
+        Double minpph = Double.MAX_VALUE;    
+        Double maxVol = 0.;
+        Double minVol = Double.MAX_VALUE;
+        for(int i =0; i<trList.size();i++){
+            if(trList.get(i).pph<minpph){
+                minpph=trList.get(i).pph;
+            }
+            if(trList.get(i).pph>maxpph){
+                maxpph=trList.get(i).pph;
+            }
+            if(trList.get(i).ppk<minppk){
+                minppk=trList.get(i).ppk;
+            }
+            if(trList.get(i).ppk>maxppk){
+                maxppk=trList.get(i).ppk;
+            }
+            if(trList.get(i).max>maxVol){
+                maxVol = (double)trList.get(i).max;
+            }
+            if(trList.get(i).max<minVol){
+                minVol = (double)trList.get(i).max;
+            }
+        }
+        Double maxk = 0.;
+        Double mink = Double.MAX_VALUE;
+        Double minh = Double.MAX_VALUE;
+        Double maxh = 0.;
+        for(int i=0; i< pts.size()-1;i++){
+            for(int j=i+1; j<pts.size();j++){                
+                PathWrapper gr = getRoute(pts.get(i).getPoint(), pts.get(j).getPoint(), gw);
+                if(gr.getDistance()>maxk){
+                    maxk=gr.getDistance();
+                }
+                if(gr.getDistance()<mink){
+                    mink=gr.getDistance();
+                }
+                if(gr.getTime()>maxh){
+                    maxh=(double)(gr.getTime()/1000);
+                }
+                if(gr.getTime()<minh){
+                    minh=(double)(gr.getTime()/1000);
+                }
+            }
+        }
+        Double maxCostWaste = 0.;
+        Double minCostWaste = Double.MAX_VALUE;
+        for(int i=0; i< dumpList.size()-1;i++){
+            if(dumpList.get(i).coord.type==3 || dumpList.get(i).coord.type==4){
+                for(int j = 0; j<dumpList.get(i).prices.size();j++){
+                    if(Math.abs((Double)dumpList.get(i).prices.values().toArray()[j])>maxCostWaste){
+                        maxCostWaste = Math.abs((Double)dumpList.get(i).prices.values().toArray()[j]);
+                    }
+                    if(Math.abs((Double)dumpList.get(i).prices.values().toArray()[j])<minCostWaste){
+                        minCostWaste = Math.abs((Double)dumpList.get(i).prices.values().toArray()[j]);
+                    }
+                }
+            }
+        }
+        if(minCostWaste==0){
+            minCostWaste = 1.;
+        }
+        maxWastePrice = minCostWaste*minVol;
+        maxCost = maxk*maxppk/1000+maxh*maxpph/3600;
+        minCost = mink*minppk/1000+minh*minpph/3600;
+        return Evaluator.EvaluateMy(new SituationInterface(){
             @Override
             public Integer getTrucks() {
                 return trList.size();
@@ -156,7 +226,7 @@ public class Solver {
 
             @Override
             public Double getMaxRouteTruckCost() {
-                return curMax;
+                return maxCost;
             }
 
             @Override
@@ -164,7 +234,7 @@ public class Solver {
                 List<Double> ld = new ArrayList<>();
                 PathWrapper gr = getRoute(pts.get(obj).getPoint(), trList.get(tr).getPoint(), gw);
                 ld.add(gr.getDistance());
-                ld.add((double)gr.getTime()/1000);
+                ld.add((double)(gr.getTime()/1000));
                 return ld;
             }
 
@@ -181,11 +251,13 @@ public class Solver {
             }
 
             @Override
-            public Double updateMaxRouteTruckCost(Double val) {
-                if(curMax<val){
-                    curMax = val;
-                }
-                return val;
+            public Double getMinRouteTruckCost() {
+                return minCost;
+            }
+
+            @Override
+            public Double getMaxProfit() {
+                return maxWastePrice;
             }
         });
     }

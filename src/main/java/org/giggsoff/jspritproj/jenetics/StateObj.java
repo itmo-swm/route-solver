@@ -6,7 +6,7 @@
 package org.giggsoff.jspritproj.jenetics;
 
 import java.util.Random;
-import org.jenetics.util.RandomRegistry;
+import org.giggsoff.jspritproj.Main;
 
 /**
  *
@@ -19,29 +19,36 @@ public class StateObj {
     public static Integer MaxBin = 15;
     public static Integer MaxDel = 5;
     public static StateObj Rand(){        
-        final Random random = RandomRegistry.getRandom();
+        Random random = new Random();
         StateObj so = new StateObj();
         int nv = random.nextInt(10);
-        if(nv==1){
+        if(nv<=1){
             so.obj=-1;
-        }else if(nv<5){
+        }else if(nv<=3){
             so.obj = random.nextInt(StateObj.MaxBin+StateObj.MaxDel);
         }else{
             so.obj = random.nextInt(StateObj.MaxBin);            
         }
-        so.truck = random.nextInt(StateObj.MaxTruck);
+        if(so.obj>=0 && so.obj<MaxBin){
+            so.truck = Main.typesTrucks.get(Main.sgbList.get(so.obj).type).get(random.nextInt(Main.typesTrucks.get(Main.sgbList.get(so.obj).type).size()));
+        }else
+            so.truck = random.nextInt(StateObj.MaxTruck);
         return so;
     }
     public static Integer curObj = 0;
     public static StateObj RandTruck(){
-        final Random random = RandomRegistry.getRandom();
+        Random random = new Random();
         StateObj so = new StateObj();
         so.obj = curObj;
-        so.truck = random.nextInt(StateObj.MaxTruck);
-        curObj++;
+        if(curObj>=0)
+            curObj++;
         if(curObj>MaxBin+MaxDel){
-            curObj = 0;
+            curObj = -1;
         }
+        if(so.obj>=0 && so.obj<MaxBin){
+            so.truck = Main.typesTrucks.get(Main.sgbList.get(so.obj).type).get(random.nextInt(Main.typesTrucks.get(Main.sgbList.get(so.obj).type).size()));
+        }else
+            so.truck = random.nextInt(StateObj.MaxTruck);
         return so;       
     }
     

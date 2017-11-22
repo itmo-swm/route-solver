@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.time.DateUtils;
-import org.giggsoff.jspritproj.jenetics.Mark;
 import org.giggsoff.jspritproj.models.Dump;
 import org.giggsoff.jspritproj.models.DumpRepr;
 import org.giggsoff.jspritproj.models.Point;
@@ -39,6 +38,7 @@ import org.giggsoff.jspritproj.models.Processing;
 import org.giggsoff.jspritproj.models.Region;
 import org.giggsoff.jspritproj.models.SGB;
 import org.giggsoff.jspritproj.models.Truck;
+import org.giggsoff.jspritproj.simplega.Algorithm;
 import org.giggsoff.jspritproj.utils.GeoJson;
 import org.giggsoff.jspritproj.utils.GraphhopperWorker;
 import org.giggsoff.jspritproj.utils.Solver;
@@ -52,11 +52,13 @@ public class Main {
     public static List<SGB> sgbList = new ArrayList<>();
     public static List<DumpRepr> dumpList = new ArrayList<>();
     public static List<Region> regionList = new ArrayList<>();
+    public static HashMap<String, List<Integer>> typesTrucks = new HashMap<>();
     public static GraphhopperWorker gw = null;
     public static MongoClient mongo = null;
     public static HashMap<String, List<String>> lastList = new HashMap<>();
     public static HashMap<String, List<List<String>>> planList = new HashMap<>();
     public static Date planStart = new Date();
+    public static Double minCost = Double.MAX_VALUE;
 
     public static void main(String[] args) {
         try {
@@ -381,6 +383,13 @@ public class Main {
             trList = new ArrayList<>();
             trList.addAll(tlist);
             trList.sort((Truck o1, Truck o2) -> o2.priority - o1.priority);
+            typesTrucks.clear();
+            for(int i=0;i<trList.size();i++){
+                if(!typesTrucks.containsKey(trList.get(i).type)){
+                    typesTrucks.put(trList.get(i).type, new ArrayList<>());
+                }
+                typesTrucks.get(trList.get(i).type).add(i);
+            }
             List<SGB> list = SGB.fromArray(Reader.readArray("get_sgb?region=" + regionList.get(0).id));
             sgbList = new ArrayList<>();
             sgbList.addAll(list);
@@ -396,7 +405,7 @@ public class Main {
             do {
                 lastList.clear();
                 planList.clear();
-                Mark solve = Solver.solve(trList.subList(0, trCount), sgbList, dumpList, gw);
+                Algorithm solve = Solver.solve(trList.subList(0, trCount), sgbList, dumpList, gw);
                 if (ar.size() > 0 && solve.processed < lproc) {
                     break;
                 } else {
@@ -426,7 +435,6 @@ public class Main {
                         PathWrapper grp = Solver.getRoute(vr.get(i), vr.get(i + 1), gw);
                         if (grp != null) {
                             maxT.set(maxT.size() - 1, maxT.get(maxT.size() - 1) + grp.getTime());
-                            curdate.setTime(curdate.getTime() + grp.getTime()+10*60*1000);
                             for (int j = 0; j < grp.getPoints().size(); j++) {
                                 tcoords.addPoint(new Point(grp.getPoints().getLon(j), grp.getPoints().getLat(j), 0, ""));
                             }
@@ -435,7 +443,14 @@ public class Main {
                                 plansubsublist.add(vr.get(i).getPoint().id.substring(vr.get(i).getPoint().id.lastIndexOf("/") + 1));
                                 plansubsublist.add(new SimpleDateFormat("dd.MM.yyyy HH:mm:ss").format(curdate));
                                 plansublist.add(plansubsublist);
+                                if(i==vr.size()-2){                                    
+                                    plansubsublist = new ArrayList<>();
+                                    plansubsublist.add(vr.get(i+1).getPoint().id.substring(vr.get(i+1).getPoint().id.lastIndexOf("/") + 1));
+                                    plansubsublist.add(new SimpleDateFormat("dd.MM.yyyy HH:mm:ss").format(curdate));
+                                    plansublist.add(plansubsublist);
+                                }
                             }
+                            curdate.setTime(curdate.getTime() + grp.getTime()+10*60*1000);
                         }
                     }
                     if (trID != null) {

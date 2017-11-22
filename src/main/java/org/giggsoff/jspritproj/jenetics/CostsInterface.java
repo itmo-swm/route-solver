@@ -31,5 +31,8 @@ public interface CostsInterface {
     //Max cost
     Double getMaxRouteTruckCost();
     
-    Double updateMaxRouteTruckCost(Double val);
+    Double getMinRouteTruckCost();
+    
+    Double getMaxProfit();
+    
 }
