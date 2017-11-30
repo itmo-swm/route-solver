@@ -9,6 +9,10 @@ public class Line {
     private double _a = Double.NaN;
     private double _b = Double.NaN;
     private boolean _vertical = false;
+    
+    public Point getPercent(Double perc){
+        return new Point(_start.x+(_end.x - _start.x)*perc, (_start.x+(_end.x - _start.x)*perc)*_a+_b, 0, "");
+    }
 
     public Line(Point start, Point end) {
         _start = start;

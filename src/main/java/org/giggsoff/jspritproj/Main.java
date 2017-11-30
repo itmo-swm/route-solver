@@ -27,6 +27,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.time.DateUtils;
@@ -59,6 +61,9 @@ public class Main {
     public static HashMap<String, List<List<String>>> planList = new HashMap<>();
     public static Date planStart = new Date();
     public static Double minCost = Double.MAX_VALUE;
+    public static List<Polygon> ar = new ArrayList<>();
+    public static Timer t = new Timer();
+    public static CurrentTask cTask = new CurrentTask();
 
     public static void main(String[] args) {
         try {
@@ -130,7 +135,7 @@ public class Main {
             List<Processing> plist = Processing.fromArray(Reader.readArray("get_waste_processing_company?region=" + regionList.get(0).id));
             dumpList.addAll(plist);
             Long t = 0l;
-            List<Polygon> ar = new ArrayList<>();
+            ar = new ArrayList<>();
             int trCount = trList.size();
             do {
                 VehicleRoutingProblemSolution solve = Solver.solve(trList.subList(0, trCount), sgbList, dumpList, gw, show);
@@ -400,7 +405,7 @@ public class Main {
             dumpList.addAll(plist);
             Long t = 0l;
             Integer lproc = Integer.MAX_VALUE;
-            List<Polygon> ar = new ArrayList<>();
+            ar = new ArrayList<>();
             int trCount = trList.size();
             do {
                 lastList.clear();
@@ -434,9 +439,9 @@ public class Main {
                         }
                         PathWrapper grp = Solver.getRoute(vr.get(i), vr.get(i + 1), gw);
                         if (grp != null) {
-                            maxT.set(maxT.size() - 1, maxT.get(maxT.size() - 1) + grp.getTime());
+                            maxT.set(maxT.size() - 1, maxT.get(maxT.size() - 1) + grp.getTime());                         
                             for (int j = 0; j < grp.getPoints().size(); j++) {
-                                tcoords.addPoint(new Point(grp.getPoints().getLon(j), grp.getPoints().getLat(j), 0, ""));
+                                tcoords.addPoint(new Point(grp.getPoints().getLon(j), grp.getPoints().getLat(j), vr.get(i).type, vr.get(i).id, curdate));
                             }
                             if (vr.get(i).type == 2 || vr.get(i).type == 3 || vr.get(i).type == 4) {
                                 List<String> plansubsublist = new ArrayList<>();
@@ -458,7 +463,7 @@ public class Main {
                         planList.put(trID, plansublist);
                     }
                     if (tcoords.size() == 0) {
-                        tcoords.addPoint(new Point(vr.get(0).x, vr.get(0).y, 0, ""));
+                        tcoords.addPoint(new Point(vr.get(0).x, vr.get(0).y, vr.get(0).type, vr.get(0).id, curdate));
                     }
                     ar.add(tcoords);
                 }
@@ -484,6 +489,10 @@ public class Main {
         } catch (IOException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
+        t.cancel();
+        t = new Timer();
+        cTask = new CurrentTask();
+        t.scheduleAtFixedRate(cTask, 0, 2000);
     }
 
     static class GeneticHandler implements HttpHandler {

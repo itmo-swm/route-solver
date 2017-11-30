@@ -8,8 +8,10 @@ package org.giggsoff.jspritproj.utils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 import org.giggsoff.jspritproj.models.Point;
 import org.giggsoff.jspritproj.models.Polygon;
 import org.json.JSONArray;
@@ -51,6 +53,11 @@ public class Reader {
         JSONArray obj = new JSONArray(ret);
         in.close();
         return obj;
+    }
+    
+    public static void setUrl(String urllink) throws MalformedURLException, IOException{
+        URL url = new URL(urllink);
+        url.getContent();
     }
     
     public static Point readGeoJSONPoint(String _url, int type, String id) throws IOException{
