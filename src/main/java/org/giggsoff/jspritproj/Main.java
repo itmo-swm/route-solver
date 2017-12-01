@@ -63,7 +63,7 @@ public class Main {
     public static Double minCost = Double.MAX_VALUE;
     public static List<Polygon> ar = new ArrayList<>();
     public static Timer t = new Timer();
-    public static CurrentTask cTask = new CurrentTask();
+    public static CurrentTask cTask;
 
     public static void main(String[] args) {
         try {
@@ -442,6 +442,7 @@ public class Main {
                             maxT.set(maxT.size() - 1, maxT.get(maxT.size() - 1) + grp.getTime());                         
                             for (int j = 0; j < grp.getPoints().size(); j++) {
                                 tcoords.addPoint(new Point(grp.getPoints().getLon(j), grp.getPoints().getLat(j), vr.get(i).type, vr.get(i).id, curdate));
+                                System.out.println(vr.get(i).type+ vr.get(i).id+ curdate);
                             }
                             if (vr.get(i).type == 2 || vr.get(i).type == 3 || vr.get(i).type == 4) {
                                 List<String> plansubsublist = new ArrayList<>();
@@ -454,8 +455,11 @@ public class Main {
                                     plansubsublist.add(new SimpleDateFormat("dd.MM.yyyy HH:mm:ss").format(curdate));
                                     plansublist.add(plansubsublist);
                                 }
+                                curdate.setTime(curdate.getTime() + 10*60*1000);
+                                tcoords.addPoint(new Point(grp.getPoints().getLon(grp.getPoints().size()-1), grp.getPoints().getLat(grp.getPoints().size()-1), vr.get(i).type, vr.get(i).id, curdate));
+                                System.out.println(vr.get(i).type+ vr.get(i).id+ curdate);
                             }
-                            curdate.setTime(curdate.getTime() + grp.getTime()+10*60*1000);
+                            curdate.setTime(curdate.getTime() + grp.getTime());
                         }
                     }
                     if (trID != null) {
@@ -464,6 +468,7 @@ public class Main {
                     }
                     if (tcoords.size() == 0) {
                         tcoords.addPoint(new Point(vr.get(0).x, vr.get(0).y, vr.get(0).type, vr.get(0).id, curdate));
+                        System.out.println(vr.get(0).type+ vr.get(0).id+ curdate);
                     }
                     ar.add(tcoords);
                 }
@@ -491,7 +496,7 @@ public class Main {
         }
         t.cancel();
         t = new Timer();
-        cTask = new CurrentTask();
+        cTask = new CurrentTask(Main.ar.size());
         t.scheduleAtFixedRate(cTask, 0, 2000);
     }
 
