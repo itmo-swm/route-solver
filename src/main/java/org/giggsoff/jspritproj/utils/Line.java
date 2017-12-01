@@ -1,5 +1,6 @@
 package org.giggsoff.jspritproj.utils;
 
+import java.util.Date;
 import org.giggsoff.jspritproj.models.Point;
 
 public class Line {
@@ -11,7 +12,11 @@ public class Line {
     private boolean _vertical = false;
     
     public Point getPercent(Double perc){
-        return new Point(_start.x+(_end.x - _start.x)*perc, (_start.x+(_end.x - _start.x)*perc)*_a+_b, 0, "");
+        return getPercent(perc, new Date());
+    }
+    
+    public Point getPercent(Double perc, Date dt){
+        return new Point(_start.x+(_end.x - _start.x)*perc, (_start.x+(_end.x - _start.x)*perc)*_a+_b, 0, "", dt);
     }
 
     public Line(Point start, Point end) {

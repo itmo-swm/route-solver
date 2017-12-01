@@ -5,12 +5,14 @@ import org.giggsoff.jspritproj.utils.Reader;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.TourActivity;
+import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
+import static com.mongodb.client.model.Sorts.descending;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -51,6 +53,7 @@ import org.json.JSONObject;
 public class Main {
 
     public static List<Truck> trList = new ArrayList<>();
+    public static List<Point> trposition = new ArrayList<>();
     public static List<SGB> sgbList = new ArrayList<>();
     public static List<DumpRepr> dumpList = new ArrayList<>();
     public static List<Region> regionList = new ArrayList<>();
@@ -75,6 +78,8 @@ public class Main {
             server.createContext("/add_restricted", new RestrictHandler());
             server.createContext("/del_restricted", new DelRestrictHandler());
             server.createContext("/get_plan", new PlanHandler());
+            server.createContext("/get_report", new ReportHandler());
+            server.createContext("/get_position", new PositionHandler());
             server.start();
         } catch (IOException | JSONException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
@@ -303,6 +308,88 @@ public class Main {
                 ret.put("volume", volume);
                 ret.put("percent", 100. * ar.length() / lastList.get(trID).size());
                 String response = ret.toString();
+                httpExchange.getResponseHeaders().set("Content-Type", "application/json");
+                httpExchange.sendResponseHeaders(200, response.length());
+                OutputStream os = httpExchange.getResponseBody();
+                os.write(response.getBytes());
+                os.close();
+            }
+        }
+    }
+
+    static class PositionHandler implements HttpHandler {
+
+        @Override
+        public void handle(HttpExchange httpExchange) throws IOException {            
+                JSONArray ret = new JSONArray();
+                for(int i=0;i<trposition.size();i++){
+                    JSONObject jo = new JSONObject();
+                    jo.put("lon", trposition.get(i).x);
+                    jo.put("lat", trposition.get(i).y);
+                    jo.put("time", new SimpleDateFormat("dd.MM.yyyy HH:mm:ss").format(trposition.get(i).dt));
+                    ret.put(jo);
+                }
+                String response = ret.toString();
+                httpExchange.getResponseHeaders().set("Content-Type", "application/json");
+                httpExchange.sendResponseHeaders(200, response.length());
+                OutputStream os = httpExchange.getResponseBody();
+                os.write(response.getBytes());
+                os.close();
+            
+        }
+    }
+
+    static class ReportHandler implements HttpHandler {
+
+        @Override
+        public void handle(HttpExchange httpExchange) throws IOException {
+            if (mongo != null) {
+                Integer type = null;
+                if (httpExchange.getRequestURI().getQuery() != null) {
+                    Map<String, String> params = queryToMap(httpExchange.getRequestURI().getQuery());
+                    for (String header : params.keySet()) {
+                        if (header.equals("type")) {
+                            type = Integer.parseInt(params.get(header));
+                        }
+                        System.out.println(header + "->" + params.get(header));
+                    }
+                }
+                DB db = mongo.getDB("orion");
+                String response = "";
+                if(type==1){
+                    DBCollection col = db.getCollection("routes");
+                    DBCursor cursor = col.find().sort(new BasicDBObject("diff",-1)).limit(5);
+                    JSONArray ret = new JSONArray();
+                    while (cursor.hasNext()) {
+                        System.out.println(cursor.next());
+                        BasicDBObject bd = (BasicDBObject) cursor.curr();
+                        bd.removeField("_id");
+                        ret.put(bd);
+                    }
+                    response = ret.toString();
+                }else if(type==2){
+                    DBCollection col = db.getCollection("volumes");
+                    DBCursor cursor = col.find().sort(new BasicDBObject("process",-1)).limit(5);
+                    JSONArray ret = new JSONArray();
+                    while (cursor.hasNext()) {
+                        System.out.println(cursor.next());
+                        BasicDBObject bd = (BasicDBObject) cursor.curr();
+                        bd.removeField("_id");
+                        ret.put(bd);
+                    }
+                    response = ret.toString();
+                }else if(type==3){
+                    DBCollection col = db.getCollection("volumes");
+                    DBCursor cursor = col.find().sort(new BasicDBObject("percent",1)).limit(5);
+                    JSONArray ret = new JSONArray();
+                    while (cursor.hasNext()) {
+                        System.out.println(cursor.next());
+                        BasicDBObject bd = (BasicDBObject) cursor.curr();
+                        bd.removeField("_id");
+                        ret.put(bd);
+                    }
+                    response = ret.toString();
+                }
                 httpExchange.getResponseHeaders().set("Content-Type", "application/json");
                 httpExchange.sendResponseHeaders(200, response.length());
                 OutputStream os = httpExchange.getResponseBody();

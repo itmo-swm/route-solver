@@ -102,8 +102,9 @@ class CurrentTask extends TimerTask {
                         if (leni > curlen) {
                             Line line = new Line(curpart.get(l), curpart.get(l + 1));
                             Double perc = Math.abs((curlen - leni + curpart.getLength(l)) / curpart.getLength(l));
-                            p = line.getPercent(perc);
+                            p = line.getPercent(perc, cur);
                             //System.out.println(i+": "+p);
+                            Main.trposition.set(i, p);
                             break;
                         }
                     }
@@ -118,11 +119,13 @@ class CurrentTask extends TimerTask {
         lastNum = new ArrayList<>();
         curNum = new ArrayList<>();
         lpTime = new ArrayList<>();
+        Main.trposition = new ArrayList<>();
         for (int i = 0; i < size; i++) {
             lastTime.add(new Date());
             lastNum.add(0);
             curNum.add(0);
             lpTime.add(new Date());
+            Main.trposition.add(new Point());
         }
         diff = 0.;
     }
