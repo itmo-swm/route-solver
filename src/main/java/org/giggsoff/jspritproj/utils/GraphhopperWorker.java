@@ -35,7 +35,7 @@ import org.giggsoff.jspritproj.models.Polygon;
  */
 public class GraphhopperWorker {
 
-    class MyGraphHopper extends GraphHopper {
+    class MyGraphHopper extends GraphHopperOSM {
 
         private List<Polygon> forbiddenEdges = new ArrayList<>();
         private List<String> edgeIds = new ArrayList<>();
@@ -69,7 +69,7 @@ public class GraphhopperWorker {
         if (!fl.exists()) {
             FileUtils.copyURLToFile(new URL("http://download.geofabrik.de/russia/northwestern-fed-district-latest.osm.pbf"), fl);
         }
-        hopper.setDataReaderFile(osmFile);
+        hopper.setDataReaderFile(fl.getPath());
         // where to store graphhopper files?
         hopper.setGraphHopperLocation(graphFolder);
         hopper.setEncodingManager(new EncodingManager("car"));

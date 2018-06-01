@@ -12,7 +12,6 @@ import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
-import static com.mongodb.client.model.Sorts.descending;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -30,7 +29,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
-import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.time.DateUtils;
@@ -45,6 +43,7 @@ import org.giggsoff.jspritproj.models.Truck;
 import org.giggsoff.jspritproj.simplega.Algorithm;
 import org.giggsoff.jspritproj.utils.GeoJson;
 import org.giggsoff.jspritproj.utils.GraphhopperWorker;
+import org.giggsoff.jspritproj.utils.ODF;
 import org.giggsoff.jspritproj.utils.Solver;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -105,11 +104,12 @@ public class Main {
         }
         try {
             gw = new GraphhopperWorker("map.pbf", "output");
-            System.out.println("Ready");
+            System.out.println("Loaded");
             //doWorkGenetic(null, new JSONArray(), 2300.);
         } catch (IOException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
+        System.out.println("Ready");
     }
 
     static void doWork(HttpExchange he, boolean show, JSONArray regs, Double maxTime) {
@@ -139,7 +139,7 @@ public class Main {
             dumpList.addAll(dlist);
             List<Processing> plist = Processing.fromArray(Reader.readArray("get_waste_processing_company?region=" + regionList.get(0).id));
             dumpList.addAll(plist);
-            Long t = 0l;
+            Long bestTime = 0l;
             ar = new ArrayList<>();
             int trCount = trList.size();
             do {
@@ -176,12 +176,12 @@ public class Main {
                     ar.add(tcoords);
                 }
                 for (Long l : maxT) {
-                    if (l > t) {
-                        t = l;
+                    if (l > bestTime) {
+                        bestTime = l;
                     }
                 }
                 trCount -= 1;
-            } while (t < maxTime * 1000 && trCount > 0);
+            } while (bestTime < maxTime * 1000 && trCount > 0);
             if (!show) {
                 String response = GeoJson.getGeoJSON(ar).toString();
                 he.getResponseHeaders().set("Content-Type", "application/json");
@@ -190,11 +190,7 @@ public class Main {
                 os.write(response.getBytes());
                 os.close();
             }
-        } catch (JSONException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ParseException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
+        } catch (JSONException | ParseException | IOException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -247,9 +243,9 @@ public class Main {
                 String response = ar.toString();
                 he.getResponseHeaders().set("Content-Type", "application/json");
                 he.sendResponseHeaders(200, response.length());
-                OutputStream os = he.getResponseBody();
-                os.write(response.getBytes());
-                os.close();
+                try (OutputStream os = he.getResponseBody()) {
+                    os.write(response.getBytes());
+                }
             } catch (JSONException | ParseException | IOException ex) {
                 Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -298,7 +294,7 @@ public class Main {
                 Double volume = 0.;
                 while (cursor.hasNext()) {
                     System.out.println(cursor.next());
-                    if (cursor.curr().containsKey("time")&&(Integer) cursor.curr().get("time") > DateUtils.truncate(new Date(), Calendar.DATE).getTime() / 1000) {
+                    if (cursor.curr().containsKey("time") && (Integer) cursor.curr().get("time") > DateUtils.truncate(new Date(), Calendar.DATE).getTime() / 1000) {
                         ar.put(cursor.curr());
                         volume += (Integer) cursor.curr().get("volume");
                     }
@@ -310,9 +306,9 @@ public class Main {
                 String response = ret.toString();
                 httpExchange.getResponseHeaders().set("Content-Type", "application/json");
                 httpExchange.sendResponseHeaders(200, response.length());
-                OutputStream os = httpExchange.getResponseBody();
-                os.write(response.getBytes());
-                os.close();
+                try (OutputStream os = httpExchange.getResponseBody()) {
+                    os.write(response.getBytes());
+                }
             }
         }
     }
@@ -320,22 +316,22 @@ public class Main {
     static class PositionHandler implements HttpHandler {
 
         @Override
-        public void handle(HttpExchange httpExchange) throws IOException {            
-                JSONArray ret = new JSONArray();
-                for(int i=0;i<trposition.size();i++){
-                    JSONObject jo = new JSONObject();
-                    jo.put("lon", trposition.get(i).x);
-                    jo.put("lat", trposition.get(i).y);
-                    jo.put("time", new SimpleDateFormat("dd.MM.yyyy HH:mm:ss").format(trposition.get(i).dt));
-                    ret.put(jo);
-                }
-                String response = ret.toString();
-                httpExchange.getResponseHeaders().set("Content-Type", "application/json");
-                httpExchange.sendResponseHeaders(200, response.length());
-                OutputStream os = httpExchange.getResponseBody();
+        public void handle(HttpExchange httpExchange) throws IOException {
+            JSONArray ret = new JSONArray();
+            for (int i = 0; i < trposition.size(); i++) {
+                JSONObject jo = new JSONObject();
+                jo.put("lon", trposition.get(i).x);
+                jo.put("lat", trposition.get(i).y);
+                jo.put("time", new SimpleDateFormat("dd.MM.yyyy HH:mm:ss").format(trposition.get(i).dt));
+                ret.put(jo);
+            }
+            String response = ret.toString();
+            httpExchange.getResponseHeaders().set("Content-Type", "application/json");
+            httpExchange.sendResponseHeaders(200, response.length());
+            try (OutputStream os = httpExchange.getResponseBody()) {
                 os.write(response.getBytes());
-                os.close();
-            
+            }
+
         }
     }
 
@@ -356,45 +352,56 @@ public class Main {
                 }
                 DB db = mongo.getDB("orion");
                 String response = "";
-                if(type==1){
-                    DBCollection col = db.getCollection("routes");
-                    DBCursor cursor = col.find().sort(new BasicDBObject("diff",-1)).limit(5);
-                    JSONArray ret = new JSONArray();
-                    while (cursor.hasNext()) {
-                        System.out.println(cursor.next());
-                        BasicDBObject bd = (BasicDBObject) cursor.curr();
-                        bd.removeField("_id");
-                        ret.put(bd);
+                if (null != type) {
+                    switch (type) {
+                        case 1: {
+                            DBCollection col = db.getCollection("routes");
+                            DBCursor cursor = col.find().sort(new BasicDBObject("diff", -1)).limit(5);
+                            JSONArray ret = new JSONArray();
+                            while (cursor.hasNext()) {
+                                System.out.println(cursor.next());
+                                BasicDBObject bd = (BasicDBObject) cursor.curr();
+                                bd.removeField("_id");
+                                ret.put(bd);
+                            }
+                            response = ret.toString();
+                            break;
+                        }
+                        case 2: {
+                            DBCollection col = db.getCollection("volumes");
+                            DBCursor cursor = col.find().sort(new BasicDBObject("process", -1)).limit(5);
+                            JSONArray ret = new JSONArray();
+                            while (cursor.hasNext()) {
+                                System.out.println(cursor.next());
+                                BasicDBObject bd = (BasicDBObject) cursor.curr();
+                                bd.removeField("_id");
+                                ret.put(bd);
+                            }
+                            response = ret.toString();
+                            break;
+                        }
+                        case 3: {
+                            DBCollection col = db.getCollection("volumes");
+                            DBCursor cursor = col.find().sort(new BasicDBObject("percent", 1)).limit(5);
+                            JSONArray ret = new JSONArray();
+                            while (cursor.hasNext()) {
+                                System.out.println(cursor.next());
+                                BasicDBObject bd = (BasicDBObject) cursor.curr();
+                                bd.removeField("_id");
+                                ret.put(bd);
+                            }
+                            response = ret.toString();
+                            break;
+                        }
+                        default:
+                            break;
                     }
-                    response = ret.toString();
-                }else if(type==2){
-                    DBCollection col = db.getCollection("volumes");
-                    DBCursor cursor = col.find().sort(new BasicDBObject("process",-1)).limit(5);
-                    JSONArray ret = new JSONArray();
-                    while (cursor.hasNext()) {
-                        System.out.println(cursor.next());
-                        BasicDBObject bd = (BasicDBObject) cursor.curr();
-                        bd.removeField("_id");
-                        ret.put(bd);
-                    }
-                    response = ret.toString();
-                }else if(type==3){
-                    DBCollection col = db.getCollection("volumes");
-                    DBCursor cursor = col.find().sort(new BasicDBObject("percent",1)).limit(5);
-                    JSONArray ret = new JSONArray();
-                    while (cursor.hasNext()) {
-                        System.out.println(cursor.next());
-                        BasicDBObject bd = (BasicDBObject) cursor.curr();
-                        bd.removeField("_id");
-                        ret.put(bd);
-                    }
-                    response = ret.toString();
                 }
                 httpExchange.getResponseHeaders().set("Content-Type", "application/json");
                 httpExchange.sendResponseHeaders(200, response.length());
-                OutputStream os = httpExchange.getResponseBody();
-                os.write(response.getBytes());
-                os.close();
+                try (OutputStream os = httpExchange.getResponseBody()) {
+                    os.write(response.getBytes());
+                }
             }
         }
     }
@@ -417,7 +424,7 @@ public class Main {
                 return;
             }
             JSONArray jar = new JSONArray();
-            for(int i=0;i<planList.get(trID).size();i++){
+            for (int i = 0; i < planList.get(trID).size(); i++) {
                 jar.put(new JSONArray().put(planList.get(trID).get(i).get(0)).put(planList.get(trID).get(i).get(1)));
             }
             JSONObject ret = new JSONObject();
@@ -427,9 +434,9 @@ public class Main {
             String response = ret.toString();
             httpExchange.getResponseHeaders().set("Content-Type", "application/json");
             httpExchange.sendResponseHeaders(200, response.length());
-            OutputStream os = httpExchange.getResponseBody();
-            os.write(response.getBytes());
-            os.close();
+            try (OutputStream os = httpExchange.getResponseBody()) {
+                os.write(response.getBytes());
+            }
         }
     }
 
@@ -463,21 +470,21 @@ public class Main {
             if (regs.length() == 0) {
                 regionList.addAll(rlist);
             } else {
-                for (Region r : rlist) {
+                rlist.forEach((r) -> {
                     regs.forEach(item -> {
                         if (item.equals(r.id) && !regionList.contains(r)) {
                             regionList.add(r);
                         }
                     });
-                }
+                });
             }
             List<Truck> tlist = Truck.fromArray(Reader.readArray("get_truck?region=" + regionList.get(0).id));
             trList = new ArrayList<>();
             trList.addAll(tlist);
             trList.sort((Truck o1, Truck o2) -> o2.priority - o1.priority);
             typesTrucks.clear();
-            for(int i=0;i<trList.size();i++){
-                if(!typesTrucks.containsKey(trList.get(i).type)){
+            for (int i = 0; i < trList.size(); i++) {
+                if (!typesTrucks.containsKey(trList.get(i).type)) {
                     typesTrucks.put(trList.get(i).type, new ArrayList<>());
                 }
                 typesTrucks.get(trList.get(i).type).add(i);
@@ -490,7 +497,7 @@ public class Main {
             dumpList.addAll(dlist);
             List<Processing> plist = Processing.fromArray(Reader.readArray("get_waste_processing_company?region=" + regionList.get(0).id));
             dumpList.addAll(plist);
-            Long t = 0l;
+            Long bestTime = 0l;
             Integer lproc = Integer.MAX_VALUE;
             ar = new ArrayList<>();
             int trCount = trList.size();
@@ -526,25 +533,25 @@ public class Main {
                         }
                         PathWrapper grp = Solver.getRoute(vr.get(i), vr.get(i + 1), gw);
                         if (grp != null) {
-                            maxT.set(maxT.size() - 1, maxT.get(maxT.size() - 1) + grp.getTime());                         
+                            maxT.set(maxT.size() - 1, maxT.get(maxT.size() - 1) + grp.getTime());
                             for (int j = 0; j < grp.getPoints().size(); j++) {
                                 tcoords.addPoint(new Point(grp.getPoints().getLon(j), grp.getPoints().getLat(j), vr.get(i).type, vr.get(i).id, curdate));
-                                System.out.println(vr.get(i).type+ vr.get(i).id+ curdate);
+                                System.out.println(vr.get(i).type + vr.get(i).id + curdate);
                             }
                             if (vr.get(i).type == 2 || vr.get(i).type == 3 || vr.get(i).type == 4) {
                                 List<String> plansubsublist = new ArrayList<>();
                                 plansubsublist.add(vr.get(i).getPoint().id.substring(vr.get(i).getPoint().id.lastIndexOf("/") + 1));
                                 plansubsublist.add(new SimpleDateFormat("dd.MM.yyyy HH:mm:ss").format(curdate));
                                 plansublist.add(plansubsublist);
-                                if(i==vr.size()-2){                                    
+                                if (i == vr.size() - 2) {
                                     plansubsublist = new ArrayList<>();
-                                    plansubsublist.add(vr.get(i+1).getPoint().id.substring(vr.get(i+1).getPoint().id.lastIndexOf("/") + 1));
+                                    plansubsublist.add(vr.get(i + 1).getPoint().id.substring(vr.get(i + 1).getPoint().id.lastIndexOf("/") + 1));
                                     plansubsublist.add(new SimpleDateFormat("dd.MM.yyyy HH:mm:ss").format(curdate));
                                     plansublist.add(plansubsublist);
                                 }
-                                curdate.setTime(curdate.getTime() + 10*60*1000);
-                                tcoords.addPoint(new Point(grp.getPoints().getLon(grp.getPoints().size()-1), grp.getPoints().getLat(grp.getPoints().size()-1), vr.get(i).type, vr.get(i).id, curdate));
-                                System.out.println(vr.get(i).type+ vr.get(i).id+ curdate);
+                                curdate.setTime(curdate.getTime() + 10 * 60 * 1000);
+                                tcoords.addPoint(new Point(grp.getPoints().getLon(grp.getPoints().size() - 1), grp.getPoints().getLat(grp.getPoints().size() - 1), vr.get(i).type, vr.get(i).id, curdate));
+                                System.out.println(vr.get(i).type + vr.get(i).id + curdate);
                             }
                             curdate.setTime(curdate.getTime() + grp.getTime());
                         }
@@ -555,30 +562,31 @@ public class Main {
                     }
                     if (tcoords.size() == 0) {
                         tcoords.addPoint(new Point(vr.get(0).x, vr.get(0).y, vr.get(0).type, vr.get(0).id, curdate));
-                        System.out.println(vr.get(0).type+ vr.get(0).id+ curdate);
+                        System.out.println(vr.get(0).type + vr.get(0).id + curdate);
                     }
                     ar.add(tcoords);
                 }
 
                 System.out.println(lastList);
                 for (Long l : maxT) {
-                    if (l > t) {
-                        t = l;
+                    if (l > bestTime) {
+                        bestTime = l;
                     }
                 }
                 trCount -= 1;
-            } while (t < maxTime * 1000 && trCount > 0);
+            } while (bestTime < maxTime * 1000 && trCount > 0);
             String response = GeoJson.getGeoJSON(ar).toString();
             he.getResponseHeaders().set("Content-Type", "application/json");
             he.sendResponseHeaders(200, response.length());
-            OutputStream os = he.getResponseBody();
-            os.write(response.getBytes());
-            os.close();
-        } catch (JSONException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ParseException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
+            try (OutputStream os = he.getResponseBody()) {
+                os.write(response.getBytes());
+            }
+            String odf = ODF.generateODFRoute(ar);
+            System.out.println("\nODF");
+            //ODF.sendODF(odf);
+            System.out.println("\nODF SENDED");
+        } catch (JSONException | ParseException | IOException ex) {
+            System.out.println("\nERROR!!!");
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
         t.cancel();
@@ -616,7 +624,7 @@ public class Main {
         public void handle(HttpExchange httpExchange) throws IOException {
             JSONArray area = new JSONArray();
             String id = "";
-            Double maxTime = -1.;
+            //Double maxTime = -1.;
             if (httpExchange.getRequestURI().getQuery() != null) {
                 Map<String, String> params = queryToMap(httpExchange.getRequestURI().getQuery());
                 for (String header : params.keySet()) {
@@ -641,16 +649,16 @@ public class Main {
                 String response = "OK";
                 httpExchange.getResponseHeaders().set("Content-Type", "text/html");
                 httpExchange.sendResponseHeaders(200, response.length());
-                OutputStream os = httpExchange.getResponseBody();
-                os.write(response.getBytes());
-                os.close();
+                try (OutputStream os = httpExchange.getResponseBody()) {
+                    os.write(response.getBytes());
+                }
             } else {
                 String response = "Укажите регионы";
                 httpExchange.getResponseHeaders().set("Content-Type", "text/html");
                 httpExchange.sendResponseHeaders(200, response.length());
-                OutputStream os = httpExchange.getResponseBody();
-                os.write(response.getBytes());
-                os.close();
+                try (OutputStream os = httpExchange.getResponseBody()) {
+                    os.write(response.getBytes());
+                }
             }
         }
     }
@@ -676,9 +684,9 @@ public class Main {
                 String response = "OK";
                 httpExchange.getResponseHeaders().set("Content-Type", "text/html");
                 httpExchange.sendResponseHeaders(200, response.length());
-                OutputStream os = httpExchange.getResponseBody();
-                os.write(response.getBytes());
-                os.close();
+                try (OutputStream os = httpExchange.getResponseBody()) {
+                    os.write(response.getBytes());
+                }
             }
         }
     }

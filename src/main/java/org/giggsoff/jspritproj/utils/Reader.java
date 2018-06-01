@@ -26,32 +26,32 @@ public class Reader {
     public static JSONObject readObject(String what) throws IOException{
         URL url = new URL("http://sdn.naulinux.ru:8128/SPB/en/swm_scripts/"+what);
         URLConnection yc = url.openConnection();
-        BufferedReader in = new BufferedReader(
-                                new InputStreamReader(
-                                yc.getInputStream()));
-        String inputLine;
-        String ret = "";
-
-        while ((inputLine = in.readLine()) != null) 
-            ret+=inputLine;
-        JSONObject obj = new JSONObject(ret);
-        in.close();
+        JSONObject obj;
+        try (BufferedReader in = new BufferedReader(
+                new InputStreamReader(
+                        yc.getInputStream()))) {
+            String inputLine;
+            String ret = "";
+            while ((inputLine = in.readLine()) != null)
+                ret+=inputLine;
+            obj = new JSONObject(ret);
+        }
         return obj;
     }
     
     public static JSONArray readArray(String what) throws IOException{
         URL url = new URL("http://sdn.naulinux.ru:8128/SPB/en/swm_scripts/"+what);
         URLConnection yc = url.openConnection();
-        BufferedReader in = new BufferedReader(
-                                new InputStreamReader(
-                                yc.getInputStream()));
-        String inputLine;
-        String ret = "";
-
-        while ((inputLine = in.readLine()) != null) 
-            ret+=inputLine;
-        JSONArray obj = new JSONArray(ret);
-        in.close();
+        JSONArray obj;
+        try (BufferedReader in = new BufferedReader(
+                new InputStreamReader(
+                        yc.getInputStream()))) {
+            String inputLine;
+            String ret = "";
+            while ((inputLine = in.readLine()) != null)
+                ret+=inputLine;
+            obj = new JSONArray(ret);
+        }
         return obj;
     }
     

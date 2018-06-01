@@ -14,11 +14,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.TimerTask;
+import static org.giggsoff.jspritproj.Main.ar;
 import static org.giggsoff.jspritproj.Main.mongo;
 import org.giggsoff.jspritproj.models.Point;
 import org.giggsoff.jspritproj.models.Polygon;
 import org.giggsoff.jspritproj.models.SGB;
 import org.giggsoff.jspritproj.utils.Line;
+import org.giggsoff.jspritproj.utils.ODF;
 
 /**
  *
@@ -39,28 +41,27 @@ class CurrentTask extends TimerTask {
         for (int i = 0; i < Main.ar.size(); i++) {
             Point p = null;
             if (cur.after(lastTime.get(i)) && curNum.get(i) != 0) {
-                if (Main.ar.get(i).get(curNum.get(i)).type > 1&&Main.ar.get(i).get(lastNum.get(i)).type > 1) {
+                if (Main.ar.get(i).get(curNum.get(i)).type > 1 && Main.ar.get(i).get(lastNum.get(i)).type > 1) {
                     DB db = mongo.getDB("orion");
                     boolean saved = false;
-                    if(!Main.ar.get(i).get(curNum.get(i)).id.equals(Main.ar.get(i).get(lastNum.get(i)).id)){
+                    if (!Main.ar.get(i).get(curNum.get(i)).id.equals(Main.ar.get(i).get(lastNum.get(i)).id)) {
                         DBCollection col = db.getCollection("routes");
-                        String usuarioJSON = "{\"from\":\"" + Main.ar.get(i).get(lastNum.get(i)).id + "\"," + "\"to\":\"" + Main.ar.get(i).get(curNum.get(i)).id+ "\"," + "\"time\":\""+ cur.getTime() + "\"," + "\"diff\":" + diff + "}";
+                        String usuarioJSON = "{\"from\":\"" + Main.ar.get(i).get(lastNum.get(i)).id + "\"," + "\"to\":\"" + Main.ar.get(i).get(curNum.get(i)).id + "\"," + "\"time\":\"" + cur.getTime() + "\"," + "\"diff\":" + diff + "}";
                         DBObject jsonObject = (DBObject) JSON.parse(usuarioJSON);
                         col.insert(jsonObject);
                         saved = true;
-                    }else
-                    if (Main.ar.get(i).get(curNum.get(i)).type == 2) {
+                    } else if (Main.ar.get(i).get(curNum.get(i)).type == 2) {
                         DBCollection col = db.getCollection("volumes");
-                        Double proc = (Main.ar.get(i).get(curNum.get(i)).dt.getTime() - Main.ar.get(i).get(lastNum.get(i)).dt.getTime()) / 1000. - 5. + 5*new Random().nextDouble();
+                        Double proc = (Main.ar.get(i).get(curNum.get(i)).dt.getTime() - Main.ar.get(i).get(lastNum.get(i)).dt.getTime()) / 1000. - 5. + 5 * new Random().nextDouble();
                         SGB sg = SGB.findSGB(Main.sgbList, Main.ar.get(i).get(curNum.get(i)).id);
                         if (sg != null) {
-                            String usuarioJSON = "{\"id\":\"" + Main.ar.get(i).get(curNum.get(i)).id + "\"," + "\"process\":" + proc + "," + "\"time\":\""+ cur.getTime() + "\"," + "\"percent\":" + sg.volume / sg.max * 100 + "}";
+                            String usuarioJSON = "{\"id\":\"" + Main.ar.get(i).get(curNum.get(i)).id + "\"," + "\"process\":" + proc + "," + "\"time\":\"" + cur.getTime() + "\"," + "\"percent\":" + sg.volume / sg.max * 100 + "}";
                             DBObject jsonObject = (DBObject) JSON.parse(usuarioJSON);
                             col.insert(jsonObject);
                             saved = true;
                         }
                     }
-                    if(saved){
+                    if (saved) {
                         System.out.println(cur);
                         System.out.println(lastTime.get(i));
                         System.out.println(Main.ar.get(i).get(curNum.get(i)).dt);
@@ -112,6 +113,13 @@ class CurrentTask extends TimerTask {
                 }
             }
         }
+        if(Main.trposition.size()>0){
+            String odf = ODF.generateODFLocations(Main.trposition);
+            System.out.println("\nODFLoc");
+            //System.out.println(odf);
+            ODF.sendODF(odf);
+            System.out.println("\nODFLoc");
+        }
     }
 
     public CurrentTask(Integer size) {
@@ -136,6 +144,7 @@ class CurrentTask extends TimerTask {
             /*Main.sgbList.get(0).volume = 2.;
                 Reader.setUrl(Main.sgbList.get(0).getURLSGB());*/
             getCurrentPosition();
+            System.out.println("New position");
         }
     }
 
